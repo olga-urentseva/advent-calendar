@@ -7,6 +7,7 @@ export class CalendarModel {
     this.calendar = {
       title: '',
       createdBy: '',
+      to: '',
       createdAt: new Date().toISOString(),
       days: this.initializeDays()
     }
@@ -66,6 +67,10 @@ export class CalendarModel {
     this.calendar.createdBy = createdBy
   }
 
+  setTo(to: string): void {
+    this.calendar.to = to
+  }
+
   setDayContent(day: number, content: DayContent): void {
     const dayIndex = this.calendar.days.findIndex(d => d.day === day)
     if (dayIndex !== -1) {
@@ -77,6 +82,7 @@ export class CalendarModel {
   isValid(): boolean {
     return this.calendar.title.trim() !== '' && 
            this.calendar.createdBy.trim() !== '' &&
+           this.calendar.to.trim() !== '' &&
            this.getCompletedDays() > 0
   }
 
@@ -84,6 +90,7 @@ export class CalendarModel {
   isFullyCompleted(): boolean {
     return this.calendar.title.trim() !== '' && 
            this.calendar.createdBy.trim() !== '' &&
+           this.calendar.to.trim() !== '' &&
            this.getCompletedDays() === this.getDayCount()
   }
 
@@ -106,6 +113,7 @@ export class CalendarModel {
     this.calendar = {
       title: '',
       createdBy: '',
+      to: '',
       createdAt: new Date().toISOString(),
       days: this.initializeDays()
     }

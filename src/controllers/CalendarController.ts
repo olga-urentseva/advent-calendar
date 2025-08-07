@@ -1,5 +1,5 @@
 import { CalendarModel } from '../models/CalendarModel'
-import type { DayContent, ContentType, MediaSource } from '../types/calendar'
+import type { DayContent, ContentType } from '../types/calendar'
 import { FileService } from '../services/FileService'
 
 export class CalendarController {
@@ -16,9 +16,10 @@ export class CalendarController {
     return this.model.getCalendar()
   }
 
-  setCalendarMetadata(title: string, createdBy: string) {
+  setCalendarMetadata(title: string, createdBy: string, to: string) {
     this.model.setTitle(title)
     this.model.setCreatedBy(createdBy)
+    this.model.setTo(to)
   }
 
   // Day Management
@@ -27,17 +28,8 @@ export class CalendarController {
   }
 
   async setDayContent(day: number, content: DayContent) {
-    // Process content based on type and source
-    if (content.source === 'upload' && content.type !== 'text') {
-      // For file uploads, content should be a File object
-      const file = content.content as unknown as File
-      const processedContent = await this.fileService.processMediaFile(file, content.type)
-      if (processedContent) {
-        this.model.setDayContent(day, processedContent)
-      }
-    } else {
-      this.model.setDayContent(day, content)
-    }
+    // Content should already be processed (base64 string for files, text for text content)
+    this.model.setDayContent(day, content)
   }
 
   // Validation
@@ -68,12 +60,8 @@ export class CalendarController {
   }
 
   async importCalendar(file: File) {
-    try {
-      const data = await this.fileService.readFile(file)
+    const data = await this.fileService.readFile(file)
       this.model.importCalendar(data)
-    } catch (error) {
-      throw new Error('Failed to import calendar file')
-    }
   }
 
   // URL Validation

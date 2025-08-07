@@ -1,15 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { CalendarController } from '../controllers/CalendarController'
 import type { DayContent, ContentType, MediaSource } from '../types/calendar'
 
-interface CreateCalendarViewProps {
-  onBack: () => void
-}
-
-export const CreateCalendarView: React.FC<CreateCalendarViewProps> = ({ onBack }) => {
+export function CreateCalendarView() {
   const [controller] = useState(() => new CalendarController())
   const [title, setTitle] = useState('')
   const [createdBy, setCreatedBy] = useState('')
+  const [to, setTo] = useState('')
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const [error, setError] = useState('')
@@ -21,6 +19,8 @@ export const CreateCalendarView: React.FC<CreateCalendarViewProps> = ({ onBack }
   const handleDayClick = (day: number) => {
     setSelectedDay(day)
   }
+
+
 
   const handleDayCountChange = (count: number) => {
     setDayCount(count)
@@ -44,12 +44,13 @@ export const CreateCalendarView: React.FC<CreateCalendarViewProps> = ({ onBack }
       setError('')
       
       // Set metadata before export
-      controller.setCalendarMetadata(title, createdBy)
+      controller.setCalendarMetadata(title, createdBy, to)
       
       // Debug logging
       console.log('Export Debug:', {
         title,
         createdBy,
+        to,
         completedDays: controller.getCompletedDays(),
         totalDays: controller.getDayCount(),
         isValid: controller.isCalendarValid(),
@@ -72,10 +73,10 @@ export const CreateCalendarView: React.FC<CreateCalendarViewProps> = ({ onBack }
   return (
     <div className="container">
       <div className="header">
-        <button className="btn btn-secondary" onClick={onBack}>
-          ← Back to Home
-        </button>
-        <h1 className="title">🎨 Create Calendar</h1>
+        <Link to="/" className="back-link">
+          ← Back
+        </Link>
+        <h1 className="title">Create Calendar</h1>
       </div>
 
       {error && (
@@ -98,9 +99,9 @@ export const CreateCalendarView: React.FC<CreateCalendarViewProps> = ({ onBack }
         </div>
 
         <div className="form-group">
-          <label htmlFor="createdBy">Created By</label>
+          <label htmlFor="created-by">Created By</label>
           <input
-            id="createdBy"
+            id="created-by"
             type="text"
             value={createdBy}
             onChange={(e) => setCreatedBy(e.target.value)}
@@ -110,8 +111,20 @@ export const CreateCalendarView: React.FC<CreateCalendarViewProps> = ({ onBack }
         </div>
 
         <div className="form-group">
-          <label>Number of Days</label>
-          <div className="day-count-buttons">
+          <label htmlFor="to">To</label>
+          <input
+            id="to"
+            type="text"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            placeholder="Recipient's name"
+            className="form-input"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="day-count-buttons">Number of Days</label>
+          <div className="day-count-buttons" id="day-count-buttons" role="group" aria-labelledby="day-count-buttons">
             <button
               type="button"
               className={`day-count-btn ${dayCount === 25 ? 'active' : ''}`}
@@ -156,7 +169,7 @@ export const CreateCalendarView: React.FC<CreateCalendarViewProps> = ({ onBack }
           <button
             className="btn btn-primary"
             onClick={handleExport}
-            disabled={isExporting || !(title && createdBy && controller.getCompletedDays() === currentDayCount)}
+            disabled={isExporting || !(title && createdBy && to && controller.getCompletedDays() === currentDayCount)}
           >
             {isExporting ? 'Exporting...' : 'Export Calendar'}
           </button>
@@ -164,6 +177,7 @@ export const CreateCalendarView: React.FC<CreateCalendarViewProps> = ({ onBack }
             <small>
               Title: {title ? '✓' : '✗'} | 
               Creator: {createdBy ? '✓' : '✗'} | 
+              To: {to ? '✓' : '✗'} | 
               Completed: {controller.getCompletedDays()}/{currentDayCount} |
               Valid: {controller.isCalendarValid() ? '✓' : '✗'} |
               Fully Complete: {controller.isCalendarFullyCompleted() ? '✓' : '✗'}
@@ -172,10 +186,11 @@ export const CreateCalendarView: React.FC<CreateCalendarViewProps> = ({ onBack }
               className="btn btn-secondary" 
               style={{ marginTop: '8px', fontSize: '12px', padding: '4px 8px' }}
               onClick={() => {
-                controller.setCalendarMetadata(title, createdBy)
+                controller.setCalendarMetadata(title, createdBy, to)
                 console.log('Debug Info:', {
                   title,
                   createdBy,
+                  to,
                   completedDays: controller.getCompletedDays(),
                   totalDays: controller.getDayCount(),
                   isValid: controller.isCalendarValid(),
@@ -212,7 +227,7 @@ interface DayEditorProps {
   onCancel: () => void
 }
 
-const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel }) => {
+function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps) {
   const [type, setType] = useState<ContentType>('text')
   const [source, setSource] = useState<MediaSource>('upload')
   const [content, setContent] = useState('')
@@ -222,6 +237,7 @@ const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel
   const [isEditing, setIsEditing] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (dayContent) {
@@ -274,6 +290,12 @@ const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      // Validate that we have a proper File object
+      if (!(file instanceof File)) {
+        console.error('Invalid file object received')
+        return
+      }
+      
       setIsUploading(true)
       try {
         setSelectedFile(file)
@@ -287,6 +309,10 @@ const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel
         setIsEditing(false)
       } catch (error) {
         console.error('Error processing file:', error)
+        // Clear the file input on error
+        event.target.value = ''
+        setSelectedFile(null)
+        setContent('')
       } finally {
         setIsUploading(false)
       }
@@ -300,6 +326,20 @@ const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel
     // Show preview immediately after URL input
     if (url.trim()) {
       setIsEditing(false)
+    }
+  }
+
+  // Validation function to check if content is valid for saving
+  const isValidContent = (): boolean => {
+    if (type === 'text') {
+      return content.trim().length > 0
+    } else {
+      // For media content, check if we have either a file or a valid URL
+      if (source === 'upload') {
+        return selectedFile !== null
+      } else {
+        return content.trim().length > 0
+      }
     }
   }
 
@@ -317,14 +357,30 @@ const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel
       } else {
         // For media content, we need to handle the actual file or URL
         if (source === 'upload' && selectedFile) {
-          // This will be processed by the controller
-          onSave({
-            day,
-            type,
-            source,
-            content: selectedFile as any, // Will be processed as File object
-            title: title || `Day ${day}`
-          })
+          // Validate that selectedFile is actually a File object
+          if (!(selectedFile instanceof File)) {
+            throw new Error('Invalid file object. Please select a file again.')
+          }
+          
+          // Convert file to base64 for storage
+          const reader = new FileReader()
+          reader.onload = () => {
+            const base64Content = reader.result as string
+            onSave({
+              day,
+              type,
+              source,
+              content: base64Content,
+              title: title || `Day ${day}`,
+              originalFileName: selectedFile.name,
+              fileSize: selectedFile.size
+            })
+          }
+          reader.onerror = () => {
+            throw new Error('Failed to read file. Please try again.')
+          }
+          reader.readAsDataURL(selectedFile)
+          return // Exit early since we're handling async file reading
         } else {
           onSave({
             day,
@@ -338,6 +394,8 @@ const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel
       setIsEditing(false)
     } catch (error) {
       console.error('Error saving content:', error)
+      // Show error to user
+      alert(error instanceof Error ? error.message : 'Failed to save content. Please try again.')
     } finally {
       setIsSaving(false)
     }
@@ -383,7 +441,6 @@ const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel
       
       case 'video':
         if (source === 'url') {
-          // Handle YouTube/Vimeo URLs
           const videoId = extractVideoId(content)
           if (videoId) {
             return (
@@ -424,7 +481,7 @@ const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel
 
   // Helper function to extract video ID from YouTube URL
   const extractVideoId = (url: string): string | null => {
-    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
+    const regex = /(?:youtube\.com\/(?:[^]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\s]{11})/
     const match = url.match(regex)
     return match ? match[1] : null
   }
@@ -432,11 +489,19 @@ const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel
   return (
     <div className="day-editor-overlay">
       <div className="day-editor">
+        <button 
+          className="close-btn" 
+          onClick={onCancel}
+          aria-label="Close day editor"
+        >
+          ✕
+        </button>
         <h3>Day {day}</h3>
         
         <div className="form-group">
-          <label>Title</label>
+          <label htmlFor={`day-${day}-title`}>Title</label>
           <input
+            id={`day-${day}-title`}
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -453,7 +518,7 @@ const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel
               <button className="btn btn-secondary" onClick={handleReplace}>
                 🔄 Replace Content
               </button>
-              <button className="btn btn-primary" onClick={handleSave} disabled={isSaving}>
+              <button className="btn btn-primary" onClick={handleSave} disabled={isSaving || !isValidContent()}>
                 {isSaving ? (
                   <>
                     <span className="spinner"></span>
@@ -472,8 +537,8 @@ const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel
           // Editing Mode
           <>
             <div className="form-group">
-              <label>Content Type</label>
-              <div className="content-type-buttons">
+              <label htmlFor={`day-${day}-content-type`}>Content Type</label>
+              <div className="content-type-buttons" id={`day-${day}-content-type`} role="group" aria-labelledby={`day-${day}-content-type`}>
                 <button
                   type="button"
                   className={`type-btn ${type === 'text' ? 'active' : ''}`}
@@ -500,8 +565,9 @@ const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel
 
             {type === 'text' ? (
               <div className="form-group">
-                <label>Message</label>
+                <label htmlFor={`day-${day}-message`}>Message</label>
                 <textarea
+                  id={`day-${day}-message`}
                   value={content}
                   onChange={(e) => handleTextChange(e.target.value)}
                   placeholder="Enter your message"
@@ -511,12 +577,14 @@ const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel
               </div>
             ) : (
               <div className="form-group">
-                <label>Media Content</label>
+                <label htmlFor={`day-${day}-media-content`}>Media Content</label>
                 {showMediaOptions && (
-                  <div className="media-options">
+                  <div className="media-options" id={`day-${day}-media-content`} role="group" aria-labelledby={`day-${day}-media-content`}>
                     <div className="media-option">
-                      <h4>Upload File</h4>
+                      
+                      
                       <input
+                        ref={fileInputRef}
                         type="file"
                         accept={type === 'image' ? 'image/*' : 'video/*'}
                         onChange={handleFileUpload}
@@ -524,9 +592,11 @@ const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel
                         id={`file-upload-${day}`}
                         disabled={isUploading}
                       />
-                      <label 
-                        htmlFor={`file-upload-${day}`} 
-                        className={`file-upload-btn ${isUploading ? 'uploading' : ''}`}
+                      <button 
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className={`btn file-upload-btn ${isUploading ? 'uploading' : ''}`}
+                        disabled={isUploading}
                       >
                         {isUploading ? (
                           <>
@@ -536,7 +606,7 @@ const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel
                         ) : (
                           `📁 Choose ${type === 'image' ? 'Image' : 'Video'} File`
                         )}
-                      </label>
+                      </button>
                       {selectedFile && (
                         <p className="file-info">Selected: {selectedFile.name}</p>
                       )}
@@ -549,10 +619,11 @@ const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel
                     <div className="media-option">
                       <h4>Use URL</h4>
                       <input
+                        id={`day-${day}-url-input`}
                         type="url"
                         value={source === 'url' ? content : ''}
                         onChange={(e) => handleUrlInput(e.target.value)}
-                        placeholder={`Enter ${type} URL (YouTube, Vimeo, etc.)`}
+                        placeholder={`Enter ${type} URL`}
                         className="form-input"
                       />
                     </div>
@@ -565,7 +636,7 @@ const DayEditor: React.FC<DayEditorProps> = ({ day, dayContent, onSave, onCancel
               <button className="btn btn-secondary" onClick={onCancel} disabled={isSaving}>
                 Cancel
               </button>
-              <button className="btn btn-primary" onClick={handleSave} disabled={isSaving}>
+              <button className="btn btn-primary" onClick={handleSave} disabled={isSaving || !isValidContent()}>
                 {isSaving ? (
                   <>
                     <span className="spinner"></span>

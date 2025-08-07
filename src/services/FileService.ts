@@ -3,9 +3,16 @@ import type { DayContent, ContentType, MediaSource } from '../types/calendar'
 export class FileService {
   // Convert file to base64
   private fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+      // Validate that file is a proper File object
+      if (!(file instanceof File)) {
+        reject(new Error('Invalid file object provided'))
+        return
+      }
+      
       const reader = new FileReader()
       reader.onload = () => resolve(reader.result as string)
+      reader.onerror = () => reject(new Error('Failed to read file'))
       reader.readAsDataURL(file)
     })
   }
@@ -43,38 +50,53 @@ export class FileService {
   async processMediaFile(file: File, type: ContentType): Promise<DayContent | null> {
     const maxSize = 10 * 1024 * 1024 // 10MB
 
+    // Validate that file is a proper File object
+    if (!(file instanceof File)) {
+      throw new Error('Invalid file object provided')
+    }
+
     if (file.size > maxSize) {
       if (type === 'image') {
-        const compressedFile = await this.compressImage(file)
-        const base64 = await this.fileToBase64(compressedFile)
-        return {
-          day: 0,
-          type,
-          source: 'upload' as MediaSource,
-          content: base64,
-          fileSize: compressedFile.size,
-          originalFileName: file.name,
-          compressed: true
+        try {
+          const compressedFile = await this.compressImage(file)
+          const base64 = await this.fileToBase64(compressedFile)
+          return {
+            day: 0,
+            type,
+            source: 'upload' as MediaSource,
+            content: base64,
+            fileSize: compressedFile.size,
+            originalFileName: file.name,
+            compressed: true
+          }
+        } catch (error) {
+          throw new Error(`Failed to process image file: ${error instanceof Error ? error.message : 'Unknown error'}`)
         }
       } else {
         throw new Error('Video file is too large. Please choose a file under 10MB.')
       }
     }
 
-    const base64 = await this.fileToBase64(file)
-    return {
-      day: 0,
-      type,
-      source: 'upload' as MediaSource,
-      content: base64,
-      fileSize: file.size,
-      originalFileName: file.name,
-      compressed: false
+    try {
+      const base64 = await this.fileToBase64(file)
+      return {
+        day: 0,
+        type,
+        source: 'upload' as MediaSource,
+        content: base64,
+        fileSize: file.size,
+        originalFileName: file.name,
+        compressed: false
+      }
+    } catch (error) {
+      throw new Error(`Failed to process file: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
   // Validate URL
   validateUrl(url: string, type: ContentType): boolean {
+    if (type === 'text') return false
+    
     const urlPatterns = {
       image: [
         /\.(jpg|jpeg|png|gif|webp)$/i,
@@ -87,9 +109,9 @@ export class FileService {
         /vimeo\.com/i,
         /\.(mp4|webm|mov)$/i
       ]
-    }
+    } as const
 
-    return urlPatterns[type].some(pattern => pattern.test(url))
+    return urlPatterns[type].some((pattern: RegExp) => pattern.test(url))
   }
 
   // Download file
@@ -109,7 +131,7 @@ export class FileService {
       reader.onload = (e) => {
         try {
           resolve(e.target?.result as string)
-        } catch (error) {
+        } catch {
           reject(new Error('Failed to read file'))
         }
       }

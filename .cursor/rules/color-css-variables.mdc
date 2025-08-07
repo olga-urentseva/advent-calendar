@@ -1,0 +1,10 @@
+---
+alwaysApply: true
+
+---
+
+- use css variables for colors only
+- color variables must be abstract, without mentioned any color in a name of the variable
+- use oklch colors only
+- if a color can be gotten from another color, for example 'primary-color' and 'primary-light', it should be calculated, use `from` and manipulate OKLCH color
+- keep high color contrast for accesability

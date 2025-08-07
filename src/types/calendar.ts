@@ -15,6 +15,7 @@ export interface DayContent {
 export interface AdventCalendar {
   title: string
   createdBy: string
+  to: string
   createdAt: string
   days: DayContent[]
 }
@@ -22,6 +23,7 @@ export interface AdventCalendar {
 export interface CalendarMetadata {
   title: string
   createdBy: string
+  to: string
   createdAt: string
   totalDays: number
   completedDays: number
