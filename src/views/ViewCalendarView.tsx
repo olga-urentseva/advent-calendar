@@ -1,13 +1,9 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { CalendarController } from '../controllers/CalendarController'
 import type { AdventCalendar, DayContent } from '../types/calendar'
 
-interface ViewCalendarViewProps {
-  onBack: () => void
-  onCreateCalendar: () => void
-}
-
-export const ViewCalendarView: React.FC<ViewCalendarViewProps> = ({ onBack, onCreateCalendar }) => {
+export function ViewCalendarView() {
   const [controller] = useState(() => new CalendarController())
   const [calendar, setCalendar] = useState<AdventCalendar | null>(null)
   const [selectedDay, setSelectedDay] = useState<DayContent | null>(null)
@@ -77,6 +73,8 @@ export const ViewCalendarView: React.FC<ViewCalendarViewProps> = ({ onBack, onCr
     }
   }
 
+
+
   const getNextUnlockTime = () => {
     const today = new Date()
     const currentYear = today.getFullYear()
@@ -101,53 +99,56 @@ export const ViewCalendarView: React.FC<ViewCalendarViewProps> = ({ onBack, onCr
   }
 
   const calculateCountdown = () => {
-    if (testMode) {
-      setCountdown(null)
-      return
-    }
-    
     const nextUnlockTime = getNextUnlockTime()
     if (!nextUnlockTime) {
       setCountdown(null)
       return
     }
-    
+
     const now = new Date()
     const diff = nextUnlockTime.getTime() - now.getTime()
-    
+
     if (diff <= 0) {
       setCountdown(null)
       return
     }
-    
+
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
     const seconds = Math.floor((diff % (1000 * 60)) / 1000)
-    
+
     setCountdown({ days, hours, minutes, seconds })
   }
 
   const isDayUnlocked = (day: number) => {
-    if (testMode) {
-      return true // Test mode: unlock all days
-    }
+    if (testMode) return true
     
     const today = new Date()
-    const currentDay = today.getDate()
     const currentMonth = today.getMonth() + 1
+    const currentDay = today.getDate()
     
-    return currentMonth === 12 && day <= currentDay
+    // If we're not in December yet, only day 1 is unlocked
+    if (currentMonth < 12) {
+      return day === 1
+    }
+    
+    // If we're in December, unlock days up to today
+    if (currentMonth === 12) {
+      return day <= currentDay
+    }
+    
+    return false
   }
 
   if (!calendar) {
     return (
       <div className="container">
         <div className="header">
-          <button className="btn btn-secondary" onClick={onBack}>
-            ← Back to Home
-          </button>
-          <h1 className="title">📦 Open Calendar</h1>
+          <Link to="/" className="back-link">
+            ← Back
+          </Link>
+          <h1 className="title">Open Calendar</h1>
         </div>
 
         {error && (
@@ -157,36 +158,29 @@ export const ViewCalendarView: React.FC<ViewCalendarViewProps> = ({ onBack, onCr
         )}
 
         <div className="upload-section">
-          <h3>Upload Your Advent Calendar File</h3>
-          <p>Select the JSON file you received</p>
+          <h3>Upload Your Advent Calendar</h3>
+          <p>Drag and drop your calendar file here or click to browse</p>
           
-          <div 
+          <input
+            type="file"
+            accept=".json"
+            onChange={handleFileUpload}
+            className="file-input"
+            id="calendar-upload"
+          />
+          <label 
+            htmlFor="calendar-upload"
             className={`file-upload-area ${isDragging ? 'dragging' : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            <input
-              type="file"
-              accept=".json"
-              onChange={handleFileUpload}
-              className="file-input"
-              id="calendar-file-upload"
-            />
-            <label htmlFor="calendar-file-upload" className="file-upload-label">
-              <div className="upload-icon">📁</div>
-              <div className="upload-text">
-                <strong>Choose File</strong>
-                <span>or drag and drop here</span>
-              </div>
-            </label>
-          </div>
-          
-          {error && (
-            <div className="error-message">
-              {error}
+            <div className="upload-icon">📁</div>
+            <div className="upload-text">
+              <strong>Choose a file</strong>
+              <span>or drag and drop</span>
             </div>
-          )}
+          </label>
         </div>
       </div>
     )
@@ -195,9 +189,9 @@ export const ViewCalendarView: React.FC<ViewCalendarViewProps> = ({ onBack, onCr
   return (
     <div className="container">
       <div className="header">
-        <button className="btn btn-secondary" onClick={onBack}>
-          ← Back to Home
-        </button>
+        <Link to="/" className="back-link">
+          ← Back
+        </Link>
         <h1 className="title">{calendar.title}</h1>
         <p className="subtitle">Created by {calendar.createdBy}</p>
       </div>
@@ -264,12 +258,12 @@ export const ViewCalendarView: React.FC<ViewCalendarViewProps> = ({ onBack, onCr
 
       {hasOpenedFirstDay && (
         <div className="create-own-section">
-          <button 
+          <Link 
+            to="/create"
             className="btn btn-primary create-own-btn"
-            onClick={onCreateCalendar}
           >
             🎁 Create Your Own Advent Calendar
-          </button>
+          </Link>
           <p className="create-own-text">
             Spread the joy! Create an advent calendar for someone special.
           </p>
@@ -285,7 +279,7 @@ interface DayViewerProps {
   onClose: () => void
 }
 
-const DayViewer: React.FC<DayViewerProps> = ({ day, onClose }) => {
+function DayViewer({ day, onClose }: DayViewerProps) {
   const renderContent = () => {
     switch (day.type) {
       case 'text':
@@ -361,7 +355,7 @@ const DayViewer: React.FC<DayViewerProps> = ({ day, onClose }) => {
 
 // Helper function to extract video ID from YouTube URL
 const extractVideoId = (url: string): string | null => {
-  const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
+  const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/
   const match = url.match(regex)
   return match ? match[1] : null
 } 

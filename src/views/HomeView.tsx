@@ -1,30 +1,27 @@
-interface HomeViewProps {
-  onCreateCalendar: () => void
-  onOpenCalendar: () => void
-}
+import { Link } from 'react-router-dom'
 
-export const HomeView: React.FC<HomeViewProps> = ({ onCreateCalendar, onOpenCalendar }) => {
+export function HomeView() {
   return (
     <div className="container">
-      <h1 className="title">🎄 Advent Calendar</h1>
+      <h1 className="title">Magic Advent Calendar</h1>
       <p className="subtitle">
         Create a personalized advent calendar for your loved ones or open one you received
       </p>
       
       <div className="button-group">
-        <button 
+        <Link 
+          to="/create"
           className="btn btn-primary"
-          onClick={onCreateCalendar}
         >
-          ✨ Create an Advent Calendar
-        </button>
+          Create Advent Calendar
+        </Link>
         
-        <button 
-          className="btn btn-secondary"
-          onClick={onOpenCalendar}
+        <Link 
+          to="/view"
+          className="btn btn-primary"
         >
-          📦 I Received an Advent Calendar
-        </button>
+          I received an advent calendar
+        </Link>
       </div>
     </div>
   )
