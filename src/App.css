@@ -1,21 +1,21 @@
 #root {
-  max-width: 1280px;
+  max-width: clamp(20rem, 90vw, 80rem);
   margin: 0 auto;
-  padding: 2rem;
+  padding: var(--space-lg);
   text-align: center;
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
+  height: clamp(4rem, 12vw, 6rem);
+  padding: var(--space-md);
   will-change: filter;
   transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em var(--color-primary) / 0.6);
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop-shadow(0 0 2em var(--color-secondary) / 0.6);
 }
 
 @keyframes logo-spin {
@@ -34,9 +34,9 @@
 }
 
 .card {
-  padding: 2em;
+  padding: var(--space-lg);
 }
 
 .read-the-docs {
-  color: #888;
+  color: var(--color-text-light);
 }
