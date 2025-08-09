@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-export function HomeView() {
+export function Home() {
   return (
     <div className="container">
       <h1 className="title">Magic Advent Calendar</h1>

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { CalendarController } from '../controllers/CalendarController'
 import type { AdventCalendar, DayContent } from '../types/calendar'
 
-export function ViewCalendarView() {
+export function ViewCalendar() {
   const [controller] = useState(() => new CalendarController())
   const [calendar, setCalendar] = useState<AdventCalendar | null>(null)
   const [selectedDay, setSelectedDay] = useState<DayContent | null>(null)

@@ -1,19 +1,17 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { HomeView } from './views/HomeView'
-import { CreateCalendarView } from './views/CreateCalendarView'
-import { ViewCalendarView } from './views/ViewCalendarView'
+import { Home } from './pages/Home'
+import { CreateCalendar } from './pages/CreateCalendar'
+import { ViewCalendar } from './pages/ViewCalendar'
 import { ErrorBoundary } from './components/ErrorBoundary'
-import { DialogTest } from './components/DialogTest'
 
 function App() {
   return (
     <Router>
       <ErrorBoundary>
         <Routes>
-          <Route path="/" element={<HomeView />} />
-          <Route path="/create" element={<CreateCalendarView />} />
-          <Route path="/view" element={<ViewCalendarView />} />
-          <Route path="/test" element={<DialogTest />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/create" element={<CreateCalendar />} />
+          <Route path="/view" element={<ViewCalendar />} />
         </Routes>
       </ErrorBoundary>
     </Router>
