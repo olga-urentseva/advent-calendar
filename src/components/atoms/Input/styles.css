@@ -1,0 +1,19 @@
+/* Form input styles */
+.form-input {
+  width: 100%;
+  max-width: clamp(20rem, 60vw, 37.5rem);
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: clamp(0.875rem, 2.5vw, 1.125rem);
+  transition: all 0.3s ease;
+  background: var(--color-primary);
+  color: var(--color-secondary);
+}
+
+.form-input:focus {
+  outline: none;
+  background: var(--color-primary);
+  color: var(--color-secondary);
+  box-shadow: 0 0 0 2px var(--color-accent);
+}

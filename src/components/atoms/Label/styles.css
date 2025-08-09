@@ -1,0 +1,8 @@
+/* Form label styles */
+.form-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  font-size: clamp(0.75rem, 2vw, 1rem);
+}

@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom'
+import { Container, Title, Subtitle } from '../components/atoms'
 
 export function Home() {
   return (
-    <div className="container">
-      <h1 className="title">Magic Advent Calendar</h1>
-      <p className="subtitle">
+    <Container>
+      <Title>Magic Advent Calendar</Title>
+      <Subtitle>
         Create a personalized advent calendar for your loved ones or open one you received
-      </p>
+      </Subtitle>
       
       <div className="button-group">
         <Link 
@@ -23,6 +24,6 @@ export function Home() {
           I received an advent calendar
         </Link>
       </div>
-    </div>
+    </Container>
   )
 } 

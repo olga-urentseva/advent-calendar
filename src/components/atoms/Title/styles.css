@@ -1,0 +1,9 @@
+/* Title styles */
+.title {
+  font-size: clamp(1.5rem, 6vw, 2.5rem);
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--color-accent);
+  font-family: 'Georgia', 'Times New Roman', serif;
+  letter-spacing: 1px;
+}

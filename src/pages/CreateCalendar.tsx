@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
 import { CalendarController } from '../controllers/CalendarController'
 import type { DayContent, ContentType, MediaSource } from '../types/calendar'
+import { Container, Title, BackLink, FormGroup, Label, Input, Textarea, Button } from '../components/atoms'
 
 export function CreateCalendar() {
   const [controller] = useState(() => new CalendarController())
@@ -71,12 +71,12 @@ export function CreateCalendar() {
   }
 
   return (
-    <div className="container">
+    <Container>
       <div className="header">
-        <Link to="/" className="back-link">
+        <BackLink to="/">
           ← Back
-        </Link>
-        <h1 className="title">Create Calendar</h1>
+        </BackLink>
+        <Title>Create Calendar</Title>
       </div>
 
       {error && (
@@ -86,41 +86,38 @@ export function CreateCalendar() {
       )}
 
       <div className="calendar-form">
-        <div className="form-group">
-          <label htmlFor="title">Calendar Title</label>
-          <input
+        <FormGroup>
+          <Label htmlFor="title">Calendar Title</Label>
+          <Input
             id="title"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Enter calendar title"
-            className="form-input"
           />
-        </div>
+        </FormGroup>
 
-        <div className="form-group">
-          <label htmlFor="created-by">Created By</label>
-          <input
+        <FormGroup>
+          <Label htmlFor="created-by">Created By</Label>
+          <Input
             id="created-by"
             type="text"
             value={createdBy}
             onChange={(e) => setCreatedBy(e.target.value)}
             placeholder="Your name"
-            className="form-input"
           />
-        </div>
+        </FormGroup>
 
-        <div className="form-group">
-          <label htmlFor="to">To</label>
-          <input
+        <FormGroup>
+          <Label htmlFor="to">To</Label>
+          <Input
             id="to"
             type="text"
             value={to}
             onChange={(e) => setTo(e.target.value)}
             placeholder="Recipient's name"
-            className="form-input"
           />
-        </div>
+        </FormGroup>
 
         <div className="form-group">
           <label htmlFor="day-count-buttons">Number of Days</label>
@@ -166,13 +163,13 @@ export function CreateCalendar() {
         </div>
 
         <div className="export-section">
-          <button
-            className="btn btn-primary"
+          <Button
+            variant="primary"
             onClick={handleExport}
             disabled={isExporting || !(title && createdBy && to && controller.getCompletedDays() === currentDayCount)}
           >
             {isExporting ? 'Exporting...' : 'Export Calendar'}
-          </button>
+          </Button>
           <div className="validation-info">
             <small>
               Title: {title ? '✓' : '✗'} | 
@@ -182,9 +179,9 @@ export function CreateCalendar() {
               Valid: {controller.isCalendarValid() ? '✓' : '✗'} |
               Fully Complete: {controller.isCalendarFullyCompleted() ? '✓' : '✗'}
             </small>
-            <button 
-              className="btn btn-secondary" 
-              style={{ marginTop: '8px', fontSize: '12px', padding: '4px 8px' }}
+            <Button 
+              variant="secondary"
+              className="debug-btn"
               onClick={() => {
                 controller.setCalendarMetadata(title, createdBy, to)
                 console.log('Debug Info:', {
@@ -199,7 +196,7 @@ export function CreateCalendar() {
               }}
             >
               Debug Validation
-            </button>
+            </Button>
           </div>
           <p className="progress-text">
             {controller.getCompletedDays()} of {currentDayCount} days completed
@@ -215,7 +212,7 @@ export function CreateCalendar() {
           onCancel={() => setSelectedDay(null)}
         />
       )}
-    </div>
+    </Container>
   )
 }
 
@@ -498,27 +495,26 @@ function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps) {
         </button>
         <h3>Day {day}</h3>
         
-        <div className="form-group">
-          <label htmlFor={`day-${day}-title`}>Title</label>
-          <input
+        <FormGroup>
+          <Label htmlFor={`day-${day}-title`}>Title</Label>
+          <Input
             id={`day-${day}-title`}
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={`Day ${day} title`}
-            className="form-input"
           />
-        </div>
+        </FormGroup>
 
         {!isEditing && content && type !== 'text' ? (
           // Preview Mode (only for media content)
           <div className="preview-mode">
             {renderPreview()}
             <div className="preview-actions">
-              <button className="btn btn-secondary" onClick={handleReplace}>
+              <Button variant="secondary" onClick={handleReplace}>
                 🔄 Replace Content
-              </button>
-              <button className="btn btn-primary" onClick={handleSave} disabled={isSaving || !isValidContent()}>
+              </Button>
+              <Button variant="primary" onClick={handleSave} disabled={isSaving || !isValidContent()}>
                 {isSaving ? (
                   <>
                     <span className="spinner"></span>
@@ -527,17 +523,17 @@ function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps) {
                 ) : (
                   'Save'
                 )}
-              </button>
-              <button className="btn btn-secondary" onClick={onCancel} disabled={isSaving}>
+              </Button>
+              <Button variant="secondary" onClick={onCancel} disabled={isSaving}>
                 Cancel
-              </button>
+              </Button>
             </div>
           </div>
         ) : (
           // Editing Mode
           <>
-            <div className="form-group">
-              <label htmlFor={`day-${day}-content-type`}>Content Type</label>
+            <FormGroup>
+              <Label htmlFor={`day-${day}-content-type`}>Content Type</Label>
               <div className="content-type-buttons" id={`day-${day}-content-type`} role="group" aria-labelledby={`day-${day}-content-type`}>
                 <button
                   type="button"
@@ -561,23 +557,22 @@ function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps) {
                   🎥 Video
                 </button>
               </div>
-            </div>
+            </FormGroup>
 
             {type === 'text' ? (
-              <div className="form-group">
-                <label htmlFor={`day-${day}-message`}>Message</label>
-                <textarea
+              <FormGroup>
+                <Label htmlFor={`day-${day}-message`}>Message</Label>
+                <Textarea
                   id={`day-${day}-message`}
                   value={content}
                   onChange={(e) => handleTextChange(e.target.value)}
                   placeholder="Enter your message"
-                  className="form-textarea"
                   rows={4}
                 />
-              </div>
+              </FormGroup>
             ) : (
-              <div className="form-group">
-                <label htmlFor={`day-${day}-media-content`}>Media Content</label>
+              <FormGroup>
+                <Label htmlFor={`day-${day}-media-content`}>Media Content</Label>
                 {showMediaOptions && (
                   <div className="media-options" id={`day-${day}-media-content`} role="group" aria-labelledby={`day-${day}-media-content`}>
                     <div className="media-option">
@@ -629,7 +624,7 @@ function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps) {
                     </div>
                   </div>
                 )}
-              </div>
+              </FormGroup>
             )}
 
             <div className="editor-actions">

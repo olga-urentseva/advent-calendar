@@ -1,4 +1,4 @@
-import type { AdventCalendar, DayContent, ContentType, MediaSource } from '../types/calendar'
+import type { AdventCalendar, DayContent } from '../types/calendar'
 
 export class CalendarModel {
   private calendar: AdventCalendar
@@ -103,7 +103,7 @@ export class CalendarModel {
     try {
       const imported = JSON.parse(data) as AdventCalendar
       this.calendar = imported
-    } catch (error) {
+    } catch {
       throw new Error('Invalid calendar data format')
     }
   }

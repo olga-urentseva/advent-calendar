@@ -1,0 +1,8 @@
+/* Form group styles */
+.form-group {
+  margin-bottom: 1rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
