@@ -1,29 +1,24 @@
-import { Link } from 'react-router-dom'
-import { Container, Title, Subtitle } from '../components/atoms'
+import { Container } from '../components/atoms'
+import { WelcomeSection, ActionButtons } from '../components/organisms'
+
+const actionButtons = [
+  {
+    to: '/create',
+    label: 'Create Advent Calendar',
+    variant: 'primary' as const
+  },
+  {
+    to: '/view',
+    label: 'I received an advent calendar',
+    variant: 'primary' as const
+  }
+]
 
 export function Home() {
   return (
     <Container>
-      <Title>Magic Advent Calendar</Title>
-      <Subtitle>
-        Create a personalized advent calendar for your loved ones or open one you received
-      </Subtitle>
-      
-      <div className="button-group">
-        <Link 
-          to="/create"
-          className="btn btn-primary"
-        >
-          Create Advent Calendar
-        </Link>
-        
-        <Link 
-          to="/view"
-          className="btn btn-primary"
-        >
-          I received an advent calendar
-        </Link>
-      </div>
+      <WelcomeSection />
+      <ActionButtons buttons={actionButtons} />
     </Container>
   )
 } 
