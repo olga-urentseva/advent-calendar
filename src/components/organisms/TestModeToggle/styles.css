@@ -1,0 +1,56 @@
+/* Test mode toggle */
+.test-mode-toggle {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: var(--color-secondary-light);
+  border: 1px solid var(--color-accent);
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.test-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.test-toggle input[type="checkbox"] {
+  display: none;
+}
+
+.toggle-slider {
+  position: relative;
+  width: clamp(2.5rem, 8vw, 3.125rem);
+  height: clamp(1.25rem, 4vw, 1.5rem);
+  background: var(--color-text-light);
+  border-radius: 0.75rem;
+  transition: background 0.3s ease;
+}
+
+.toggle-slider:before {
+  content: '';
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: clamp(1rem, 3vw, 1.25rem);
+  height: clamp(1rem, 3vw, 1.25rem);
+  background: var(--color-accent);
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.test-toggle input[type="checkbox"]:checked + .toggle-slider {
+  background: var(--color-accent);
+}
+
+.test-toggle input[type="checkbox"]:checked + .toggle-slider:before {
+  transform: translateX(clamp(1.5rem, 5vw, 1.625rem));
+}
+
+.toggle-label {
+  font-weight: 500;
+  color: var(--color-text);
+}

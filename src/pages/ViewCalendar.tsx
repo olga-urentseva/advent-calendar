@@ -1,8 +1,15 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { CalendarController } from '../controllers/CalendarController'
 import type { AdventCalendar, DayContent } from '../types/calendar'
-import { Container, Title, BackLink } from '../components/atoms'
+import { Container, Title, BackLink, Subtitle } from '../components/atoms'
+import { 
+  CalendarUploader,
+  TestModeToggle,
+  CountdownTimer,
+  CalendarViewer,
+  DayViewer,
+  CreateOwnSection
+} from '../components/organisms'
 
 export function ViewCalendar() {
   const [controller] = useState(() => new CalendarController())
@@ -74,8 +81,6 @@ export function ViewCalendar() {
     }
   }
 
-
-
   const getNextUnlockTime = () => {
     const today = new Date()
     const currentYear = today.getFullYear()
@@ -100,6 +105,11 @@ export function ViewCalendar() {
   }
 
   const calculateCountdown = () => {
+    if (testMode) {
+      setCountdown(null)
+      return
+    }
+
     const nextUnlockTime = getNextUnlockTime()
     if (!nextUnlockTime) {
       setCountdown(null)
@@ -122,9 +132,9 @@ export function ViewCalendar() {
     setCountdown({ days, hours, minutes, seconds })
   }
 
-  const isDayUnlocked = (day: number) => {
+  const isDayUnlocked = (day: number): boolean => {
     if (testMode) return true
-    
+
     const today = new Date()
     const currentMonth = today.getMonth() + 1
     const currentDay = today.getDate()
@@ -158,31 +168,13 @@ export function ViewCalendar() {
           </div>
         )}
 
-        <div className="upload-section">
-          <h3>Upload Your Advent Calendar</h3>
-          <p>Drag and drop your calendar file here or click to browse</p>
-          
-          <input
-            type="file"
-            accept=".json"
-            onChange={handleFileUpload}
-            className="file-input"
-            id="calendar-upload"
-          />
-          <label 
-            htmlFor="calendar-upload"
-            className={`file-upload-area ${isDragging ? 'dragging' : ''}`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-          >
-            <div className="upload-icon">📁</div>
-            <div className="upload-text">
-              <strong>Choose a file</strong>
-              <span>or drag and drop</span>
-            </div>
-          </label>
-        </div>
+        <CalendarUploader
+          isDragging={isDragging}
+          onFileUpload={handleFileUpload}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        />
       </Container>
     )
   }
@@ -194,61 +186,23 @@ export function ViewCalendar() {
           ← Back
         </BackLink>
         <Title>{calendar.title}</Title>
-        <p className="subtitle">Created by {calendar.createdBy}</p>
+        <Subtitle>Created by {calendar.createdBy}</Subtitle>
       </div>
 
-      <div className="test-mode-toggle">
-        <label className="test-toggle">
-          <input
-            type="checkbox"
-            checked={testMode}
-            onChange={(e) => setTestMode(e.target.checked)}
-          />
-          <span className="toggle-slider"></span>
-          <span className="toggle-label">🧪 Test Mode (Unlock All Days)</span>
-        </label>
-      </div>
+      <TestModeToggle
+        testMode={testMode}
+        onTestModeChange={setTestMode}
+      />
 
       {!testMode && countdown && (
-        <div className="countdown-section">
-          <h3>⏰ Next Day Unlocks In:</h3>
-          <div className="countdown-timer">
-            <div className="countdown-item">
-              <span className="countdown-value">{countdown.days}</span>
-              <span className="countdown-label">Days</span>
-            </div>
-            <div className="countdown-item">
-              <span className="countdown-value">{countdown.hours.toString().padStart(2, '0')}</span>
-              <span className="countdown-label">Hours</span>
-            </div>
-            <div className="countdown-item">
-              <span className="countdown-value">{countdown.minutes.toString().padStart(2, '0')}</span>
-              <span className="countdown-label">Minutes</span>
-            </div>
-            <div className="countdown-item">
-              <span className="countdown-value">{countdown.seconds.toString().padStart(2, '0')}</span>
-              <span className="countdown-label">Seconds</span>
-            </div>
-          </div>
-        </div>
+        <CountdownTimer countdown={countdown} />
       )}
 
-      <div className="calendar-view">
-        <div className="days-grid">
-          {calendar.days.map((day) => (
-            <button
-              key={day.day}
-              className={`day-cell ${isDayUnlocked(day.day) ? 'unlocked' : 'locked'} ${day.content ? 'has-content' : ''}`}
-              onClick={() => handleDayClick(day)}
-              disabled={!isDayUnlocked(day.day)}
-            >
-              <span className="day-number">{day.day}</span>
-              {!isDayUnlocked(day.day) && <span className="lock-icon">🔒</span>}
-              {day.content && isDayUnlocked(day.day) && <span className="content-indicator">✨</span>}
-            </button>
-          ))}
-        </div>
-      </div>
+      <CalendarViewer
+        days={calendar.days}
+        isDayUnlocked={isDayUnlocked}
+        onDayClick={handleDayClick}
+      />
 
       {selectedDay && (
         <DayViewer
@@ -257,106 +211,7 @@ export function ViewCalendar() {
         />
       )}
 
-      {hasOpenedFirstDay && (
-        <div className="create-own-section">
-          <Link 
-            to="/create"
-            className="btn btn-primary create-own-btn"
-          >
-            🎁 Create Your Own Advent Calendar
-          </Link>
-          <p className="create-own-text">
-            Spread the joy! Create an advent calendar for someone special.
-          </p>
-        </div>
-      )}
+      <CreateOwnSection hasOpenedFirstDay={hasOpenedFirstDay} />
     </Container>
   )
-}
-
-// Day Viewer Component
-interface DayViewerProps {
-  day: DayContent
-  onClose: () => void
-}
-
-function DayViewer({ day, onClose }: DayViewerProps) {
-  const renderContent = () => {
-    switch (day.type) {
-      case 'text':
-        return (
-          <div className="text-content">
-            <p>{day.content}</p>
-          </div>
-        )
-      
-      case 'image':
-        return (
-          <div className="image-content">
-            <img 
-              src={day.content} 
-              alt={day.title || `Day ${day.day}`}
-              className="content-image"
-            />
-          </div>
-        )
-      
-      case 'video':
-        if (day.source === 'url') {
-          // Handle YouTube/Vimeo URLs
-          const videoId = extractVideoId(day.content)
-          if (videoId) {
-            return (
-              <div className="video-content">
-                <iframe
-                  src={`https://www.youtube.com/embed/${videoId}`}
-                  title={day.title || `Day ${day.day}`}
-                  frameBorder="0"
-                  allowFullScreen
-                  className="content-video"
-                />
-              </div>
-            )
-          }
-        }
-        return (
-          <div className="video-content">
-            <video 
-              src={day.content} 
-              controls
-              className="content-video"
-            >
-              Your browser does not support the video tag.
-            </video>
-          </div>
-        )
-      
-      default:
-        return <p>Unsupported content type</p>
-    }
-  }
-
-  return (
-    <div className="day-viewer-overlay">
-      <div className="day-viewer">
-        <div className="viewer-header">
-          <h3>{day.title || `Day ${day.day}`}</h3>
-          <button className="close-btn" onClick={onClose}>
-            ✕
-          </button>
-        </div>
-        
-        <div className="viewer-content">
-          {renderContent()}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Helper function to extract video ID from YouTube URL
-const extractVideoId = (url: string): string | null => {
-  const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/
-  const match = url.match(regex)
-  return match ? match[1] : null
 } 
