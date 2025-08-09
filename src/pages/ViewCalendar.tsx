@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { CalendarController } from '../controllers/CalendarController'
 import type { AdventCalendar, DayContent } from '../types/calendar'
+import { Container, Title, BackLink } from '../components/atoms'
 
 export function ViewCalendar() {
   const [controller] = useState(() => new CalendarController())
@@ -143,12 +144,12 @@ export function ViewCalendar() {
 
   if (!calendar) {
     return (
-      <div className="container">
+      <Container>
         <div className="header">
-          <Link to="/" className="back-link">
+          <BackLink to="/">
             ← Back
-          </Link>
-          <h1 className="title">Open Calendar</h1>
+          </BackLink>
+          <Title>Open Calendar</Title>
         </div>
 
         {error && (
@@ -182,17 +183,17 @@ export function ViewCalendar() {
             </div>
           </label>
         </div>
-      </div>
+      </Container>
     )
   }
 
   return (
-    <div className="container">
+    <Container>
       <div className="header">
-        <Link to="/" className="back-link">
+        <BackLink to="/">
           ← Back
-        </Link>
-        <h1 className="title">{calendar.title}</h1>
+        </BackLink>
+        <Title>{calendar.title}</Title>
         <p className="subtitle">Created by {calendar.createdBy}</p>
       </div>
 
@@ -269,7 +270,7 @@ export function ViewCalendar() {
           </p>
         </div>
       )}
-    </div>
+    </Container>
   )
 }
 

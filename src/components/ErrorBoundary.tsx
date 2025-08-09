@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { Container, Title, Subtitle, Button } from './atoms'
 
 interface Props {
   children: ReactNode
@@ -34,11 +35,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="error-boundary">
-          <div className="container">
-            <h1 className="title">🚨 Something went wrong</h1>
-            <p className="subtitle">
+          <Container>
+            <Title>🚨 Something went wrong</Title>
+            <Subtitle>
               An unexpected error occurred. Please try refreshing the page.
-            </p>
+            </Subtitle>
             
             <div className="error-details">
               <h3>Error Details:</h3>
@@ -57,14 +58,14 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             <div className="error-actions">
-              <button 
-                className="btn btn-primary"
+              <Button 
+                variant="primary"
                 onClick={() => window.location.reload()}
               >
                 🔄 Refresh Page
-              </button>
+              </Button>
             </div>
-          </div>
+          </Container>
         </div>
       )
     }

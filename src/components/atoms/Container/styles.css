@@ -1,0 +1,8 @@
+/* Container styles */
+.container {
+  text-align: center;
+  padding: 2rem;
+  max-width: clamp(30rem, 90vw, 70rem);
+  width: 95%;
+  margin: 1rem;
+}
