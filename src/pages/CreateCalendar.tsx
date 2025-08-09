@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { CalendarController } from '../controllers/CalendarController'
 import type { DayContent, ContentType, MediaSource } from '../types/calendar'
 
-export function CreateCalendarView() {
+export function CreateCalendar() {
   const [controller] = useState(() => new CalendarController())
   const [title, setTitle] = useState('')
   const [createdBy, setCreatedBy] = useState('')
