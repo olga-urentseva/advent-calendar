@@ -424,91 +424,6 @@ body {
 }
 
 /* Day viewer overlay */
-.day-viewer-overlay {
-  /* CSS-only modal positioning and styling */
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--color-shadow);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-  /* CSS containment for performance */
-  contain: layout style paint;
-  isolation: isolate;
-}
-
-.day-viewer {
-  background: var(--color-accent-light);
-  border-radius: 1rem;
-  max-width: clamp(25rem, 90vw, 50rem);
-  width: 100%;
-  max-height: 90vh;
-  overflow: hidden;
-}
-
-.viewer-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  border-bottom: 2px solid var(--color-secondary-light);
-}
-
-.viewer-header h3 {
-  margin: 0;
-  color: var(--color-secondary);
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--color-secondary-light);
-  padding: 0.5rem;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.5rem;
-  min-height: 1.5rem;
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-}
-
-.close-btn:hover {
-  color: var(--color-secondary-dark);
-  transform: scale(1.1);
-}
-
-.viewer-content {
-  padding: 1rem;
-  max-height: 60vh;
-  overflow-y: auto;
-}
-
-.text-content p {
-  font-size: 1.125rem;
-  line-height: 1.6;
-  color: var(--color-secondary);
-}
-
-.content-image, .content-video {
-  max-width: 100%;
-  height: auto;
-  border-radius: 0.5rem;
-}
-
-.content-video {
-  width: 100%;
-  min-height: clamp(15rem, 40vh, 18.75rem);
-}
 
 
 
@@ -518,65 +433,8 @@ body {
 
 
 
-/* CSS-only Modal Background Disabling */
 
-/* Future-proof: :modal pseudo-class (when browsers support it) */
-.day-editor-overlay:modal,
-.day-viewer-overlay:modal {
-  /* This will automatically handle modal behavior when supported */
-}
 
-/* Current approach: Modern browsers with :has() selector */
-body:has(.day-editor-overlay),
-body:has(.day-viewer-overlay) {
-  overflow: hidden;
-}
-
-/* HTML level overflow prevention for better coverage */
-html:has(.day-editor-overlay),
-html:has(.day-viewer-overlay) {
-  overflow: hidden;
-}
-
-/* Fallback for older browsers: Prevent background interaction */
-.day-editor-overlay ~ *,
-.day-viewer-overlay ~ * {
-  pointer-events: none;
-}
-
-/* Ensure modal content remains interactive */
-.day-editor-overlay,
-.day-viewer-overlay,
-.day-editor-overlay *,
-.day-viewer-overlay * {
-  pointer-events: auto;
-}
-
-/* Focus management for accessibility */
-.day-editor-overlay:focus-within,
-.day-viewer-overlay:focus-within {
-  outline: none;
-}
-
-/* Prevent background scrolling when modals are focused */
-body:focus-within .day-editor-overlay,
-body:focus-within .day-viewer-overlay {
-  overflow: hidden;
-}
-
-/* Progressive enhancement: When :modal is supported, it will take precedence */
-@supports selector(:modal) {
-  .day-editor-overlay:modal,
-  .day-viewer-overlay:modal {
-    /* :modal will handle all modal behavior automatically */
-  }
-  
-  /* We can remove manual overflow/pointer-events when :modal works */
-  body:has(.day-editor-overlay:modal),
-  body:has(.day-viewer-overlay:modal) {
-    overflow: auto; /* Let :modal handle this */
-  }
-}
 
 /* Modern Dialog-based Modal (Native browser modal behavior) */
 .modal-dialog {
@@ -607,8 +465,4 @@ body:focus-within .day-viewer-overlay {
   }
 }
 
-/* Ensure dialog modals work with our existing styles */
-.modal-dialog.day-editor-overlay,
-.modal-dialog.day-viewer-overlay {
-  /* Inherit existing modal styles */
-}
+

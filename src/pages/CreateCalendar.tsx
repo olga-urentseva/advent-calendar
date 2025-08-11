@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { CalendarController } from '../controllers/CalendarController'
 import type { DayContent } from '../types/calendar'
-import { Container, Title, BackLink } from '../components/atoms'
+import { Container, Title, BackLink, Modal } from '../components/atoms'
 import { 
   CalendarForm, 
   DayCountSelector, 
@@ -137,14 +137,20 @@ export function CreateCalendar() {
         onDebugValidation={handleDebugValidation}
       />
 
-      {selectedDay && (
-        <DayEditor
-          day={selectedDay}
-          dayContent={controller.getDay(selectedDay)}
-          onSave={(dayContent) => handleSaveDay(selectedDay, dayContent)}
-          onCancel={() => setSelectedDay(null)}
-        />
-      )}
+      <Modal
+        isOpen={selectedDay !== null}
+        onClose={() => setSelectedDay(null)}
+        header={`Day ${selectedDay}`}
+      >
+        {selectedDay && (
+          <DayEditor
+            day={selectedDay}
+            dayContent={controller.getDay(selectedDay)}
+            onSave={(dayContent) => handleSaveDay(selectedDay, dayContent)}
+            onCancel={() => setSelectedDay(null)}
+          />
+        )}
+      </Modal>
     </Container>
   )
 } 
