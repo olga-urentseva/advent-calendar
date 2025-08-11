@@ -218,166 +218,155 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
   }
 
   return (
-    <div className="day-editor-overlay">
-      <div className="day-editor">
-        <button 
-          className="close-btn" 
-          onClick={onCancel}
-          aria-label="Close day editor"
-        >
-          ✕
-        </button>
-        <h3>Day {day}</h3>
-        
-        <FormGroup>
-          <Label htmlFor={`day-${day}-title`}>Title</Label>
-          <Input
-            id={`day-${day}-title`}
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder={`Day ${day} title`}
-          />
-        </FormGroup>
+    <div className="day-editor">
+      <FormGroup>
+        <Label htmlFor={`day-${day}-title`}>Title</Label>
+        <Input
+          id={`day-${day}-title`}
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder={`Day ${day} title`}
+        />
+      </FormGroup>
 
-        {!isEditing && content && type !== 'text' ? (
-          // Preview Mode (only for media content)
-          <div className="preview-mode">
-            {renderPreview()}
-            <div className="preview-actions">
-              <Button variant="secondary" onClick={handleReplace}>
-                🔄 Replace Content
-              </Button>
-              <Button variant="primary" onClick={handleSave} disabled={isSaving || !isValidContent()}>
-                {isSaving ? (
-                  <>
-                    <span className="spinner"></span>
-                    Saving...
-                  </>
-                ) : (
-                  'Save'
-                )}
-              </Button>
-              <Button variant="secondary" onClick={onCancel} disabled={isSaving}>
-                Cancel
-              </Button>
-            </div>
+      {!isEditing && content && type !== 'text' ? (
+        // Preview Mode (only for media content)
+        <div className="preview-mode">
+          {renderPreview()}
+          <div className="preview-actions">
+            <Button variant="secondary" onClick={handleReplace}>
+              🔄 Replace Content
+            </Button>
+            <Button variant="primary" onClick={handleSave} disabled={isSaving || !isValidContent()}>
+              {isSaving ? (
+                <>
+                  <span className="spinner"></span>
+                  Saving...
+                </>
+              ) : (
+                'Save'
+              )}
+            </Button>
+            <Button variant="secondary" onClick={onCancel} disabled={isSaving}>
+              Cancel
+            </Button>
           </div>
-        ) : (
-          // Editing Mode
-          <>
-            <FormGroup>
-              <Label htmlFor={`day-${day}-content-type`}>Content Type</Label>
-              <div className="content-type-buttons" id={`day-${day}-content-type`} role="group" aria-labelledby={`day-${day}-content-type`}>
-                <button
-                  type="button"
-                  className={`type-btn ${type === 'text' ? 'active' : ''}`}
-                  onClick={() => handleTypeChange('text')}
-                >
-                  📝 Text
-                </button>
-                <button
-                  type="button"
-                  className={`type-btn ${type === 'image' ? 'active' : ''}`}
-                  onClick={() => handleTypeChange('image')}
-                >
-                  🖼️ Image
-                </button>
-                <button
-                  type="button"
-                  className={`type-btn ${type === 'video' ? 'active' : ''}`}
-                  onClick={() => handleTypeChange('video')}
-                >
-                  🎥 Video
-                </button>
-              </div>
-            </FormGroup>
-
-            {type === 'text' ? (
-              <FormGroup>
-                <Label htmlFor={`day-${day}-message`}>Message</Label>
-                <Textarea
-                  id={`day-${day}-message`}
-                  value={content}
-                  onChange={(e) => handleTextChange(e.target.value)}
-                  placeholder="Enter your message"
-                  rows={4}
-                />
-              </FormGroup>
-            ) : (
-              <FormGroup>
-                <Label htmlFor={`day-${day}-media-content`}>Media Content</Label>
-                {showMediaOptions && (
-                  <div className="media-options" id={`day-${day}-media-content`} role="group" aria-labelledby={`day-${day}-media-content`}>
-                    <div className="media-option">
-                      <h4>Upload File</h4>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept={type === 'image' ? 'image/*' : 'video/*'}
-                        onChange={handleFileUpload}
-                        className="file-input"
-                        id={`file-upload-${day}`}
-                        disabled={isUploading}
-                      />
-                      <button 
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className={`btn file-upload-btn ${isUploading ? 'uploading' : ''}`}
-                        disabled={isUploading}
-                      >
-                        {isUploading ? (
-                          <>
-                            <span className="spinner"></span>
-                            Processing...
-                          </>
-                        ) : (
-                          `📁 Choose ${type === 'image' ? 'Image' : 'Video'} File`
-                        )}
-                      </button>
-                      {selectedFile && (
-                        <p className="file-info">Selected: {selectedFile.name}</p>
-                      )}
-                    </div>
-
-                    <div className="media-divider">
-                      <span>OR</span>
-                    </div>
-
-                    <div className="media-option">
-                      <h4>Use URL</h4>
-                      <input
-                        id={`day-${day}-url-input`}
-                        type="url"
-                        value={source === 'url' ? content : ''}
-                        onChange={(e) => handleUrlInput(e.target.value)}
-                        placeholder={`Enter ${type} URL`}
-                        className="form-input"
-                      />
-                    </div>
-                  </div>
-                )}
-              </FormGroup>
-            )}
-
-            <div className="editor-actions">
-              <Button variant="secondary" onClick={onCancel} disabled={isSaving}>
-                Cancel
-              </Button>
-              <Button variant="primary" onClick={handleSave} disabled={isSaving || !isValidContent()}>
-                {isSaving ? (
-                  <>
-                    <span className="spinner"></span>
-                    Saving...
-                  </>
-                ) : (
-                  'Save'
-                )}
-              </Button>
+        </div>
+      ) : (
+        // Editing Mode
+        <>
+          <FormGroup>
+            <Label htmlFor={`day-${day}-content-type`}>Content Type</Label>
+            <div className="content-type-buttons" id={`day-${day}-content-type`} role="group" aria-labelledby={`day-${day}-content-type`}>
+              <button
+                type="button"
+                className={`type-btn ${type === 'text' ? 'active' : ''}`}
+                onClick={() => handleTypeChange('text')}
+              >
+                📝 Text
+              </button>
+              <button
+                type="button"
+                className={`type-btn ${type === 'image' ? 'active' : ''}`}
+                onClick={() => handleTypeChange('image')}
+              >
+                🖼️ Image
+              </button>
+              <button
+                type="button"
+                className={`type-btn ${type === 'video' ? 'active' : ''}`}
+                onClick={() => handleTypeChange('video')}
+              >
+                🎥 Video
+              </button>
             </div>
-          </>
-        )}
-      </div>
+          </FormGroup>
+
+          {type === 'text' ? (
+            <FormGroup>
+              <Label htmlFor={`day-${day}-message`}>Message</Label>
+              <Textarea
+                id={`day-${day}-message`}
+                value={content}
+                onChange={(e) => handleTextChange(e.target.value)}
+                placeholder="Enter your message"
+                rows={4}
+              />
+            </FormGroup>
+          ) : (
+            <FormGroup>
+              <Label htmlFor={`day-${day}-media-content`}>Media Content</Label>
+              {showMediaOptions && (
+                <div className="media-options" id={`day-${day}-media-content`} role="group" aria-labelledby={`day-${day}-media-content`}>
+                  <div className="media-option">
+                    <h4>Upload File</h4>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept={type === 'image' ? 'image/*' : 'video/*'}
+                      onChange={handleFileUpload}
+                      className="file-input"
+                      id={`file-upload-${day}`}
+                      disabled={isUploading}
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`btn file-upload-btn ${isUploading ? 'uploading' : ''}`}
+                      disabled={isUploading}
+                    >
+                      {isUploading ? (
+                        <>
+                          <span className="spinner"></span>
+                          Processing...
+                        </>
+                      ) : (
+                        `📁 Choose ${type === 'image' ? 'Image' : 'Video'} File`
+                      )}
+                    </button>
+                    {selectedFile && (
+                      <p className="file-info">Selected: {selectedFile.name}</p>
+                    )}
+                  </div>
+
+                  <div className="media-divider">
+                    <span>OR</span>
+                  </div>
+
+                  <div className="media-option">
+                    <h4>Use URL</h4>
+                    <input
+                      id={`day-${day}-url-input`}
+                      type="url"
+                      value={source === 'url' ? content : ''}
+                      onChange={(e) => handleUrlInput(e.target.value)}
+                      placeholder={`Enter ${type} URL`}
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+              )}
+            </FormGroup>
+          )}
+
+          <div className="editor-actions">
+            <Button variant="secondary" onClick={onCancel} disabled={isSaving}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleSave} disabled={isSaving || !isValidContent()}>
+              {isSaving ? (
+                <>
+                  <span className="spinner"></span>
+                  Saving...
+                </>
+              ) : (
+                'Save'
+              )}
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   )
 }

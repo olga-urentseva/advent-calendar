@@ -6,7 +6,7 @@ interface DayViewerProps {
   onClose: () => void
 }
 
-export function DayViewer({ day, onClose }: DayViewerProps) {
+export function DayViewer({ day }: DayViewerProps) {
   const renderContent = () => {
     switch (day.type) {
       case 'text':
@@ -70,18 +70,9 @@ export function DayViewer({ day, onClose }: DayViewerProps) {
   }
 
   return (
-    <div className="day-viewer-overlay">
-      <div className="day-viewer">
-        <div className="viewer-header">
-          <h3>{day.title || `Day ${day.day}`}</h3>
-          <button className="close-btn" onClick={onClose}>
-            ✕
-          </button>
-        </div>
-        
-        <div className="viewer-content">
-          {renderContent()}
-        </div>
+    <div className="day-viewer">
+      <div className="viewer-content">
+        {renderContent()}
       </div>
     </div>
   )

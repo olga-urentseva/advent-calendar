@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { CalendarController } from '../controllers/CalendarController'
 import type { AdventCalendar, DayContent } from '../types/calendar'
-import { Container, Title, BackLink, Subtitle } from '../components/atoms'
+import { Container, Title, BackLink, Subtitle, Modal } from '../components/atoms'
 import { 
   CalendarUploader,
   TestModeToggle,
@@ -204,12 +204,18 @@ export function ViewCalendar() {
         onDayClick={handleDayClick}
       />
 
-      {selectedDay && (
-        <DayViewer
-          day={selectedDay}
-          onClose={() => setSelectedDay(null)}
-        />
-      )}
+      <Modal
+        isOpen={selectedDay !== null}
+        onClose={() => setSelectedDay(null)}
+        header={selectedDay ? (selectedDay.title || `Day ${selectedDay.day}`) : ''}
+      >
+        {selectedDay && (
+          <DayViewer
+            day={selectedDay}
+            onClose={() => setSelectedDay(null)}
+          />
+        )}
+      </Modal>
 
       <CreateOwnSection hasOpenedFirstDay={hasOpenedFirstDay} />
     </Container>
