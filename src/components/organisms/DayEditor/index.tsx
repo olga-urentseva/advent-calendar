@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import type { DayContent, ContentType, MediaSource } from '../../../types/calendar'
-import { FormGroup, Label, Input, Textarea, Button } from '../../atoms'
+import { FormGroup } from '../../atoms/FormGroup'
+import { Label } from '../../atoms/Label'
+import { Input } from '../../atoms/Input'
+import { Textarea } from '../../atoms/Textarea'
+import { Button } from '../../atoms/Button'
 import './styles.css'
 
 interface DayEditorProps {

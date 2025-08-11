@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { CalendarController } from '../controllers/CalendarController'
 import type { DayContent } from '../types/calendar'
-import { Container, Title, BackLink, Modal } from '../components/atoms'
-import { 
-  CalendarForm, 
-  DayCountSelector, 
-  CalendarGrid, 
-  ExportSection, 
-  DayEditor 
-} from '../components/organisms'
+import { Container } from '../components/atoms/Container'
+import { Title } from '../components/atoms/Title'
+import { BackLink } from '../components/atoms/BackLink'
+import { Modal } from '../components/atoms/Modal'
+import { CalendarForm } from '../components/organisms/CalendarForm'
+import { DayCountSelector } from '../components/organisms/DayCountSelector'
+import { CalendarGrid } from '../components/organisms/CalendarGrid'
+import { ExportSection } from '../components/organisms/ExportSection'
+import { DayEditor } from '../components/organisms/DayEditor'
 
 export function CreateCalendar() {
   const [controller] = useState(() => new CalendarController())

@@ -1,4 +1,5 @@
-import { FormGroup, Label } from '../../atoms'
+import { FormGroup } from '../../atoms/FormGroup'
+import { Label } from '../../atoms/Label'
 import './styles.css'
 
 interface DayCountSelectorProps {

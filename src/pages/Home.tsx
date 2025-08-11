@@ -1,5 +1,6 @@
-import { Container } from '../components/atoms'
-import { WelcomeSection, ActionButtons } from '../components/organisms'
+import { Container } from '../components/atoms/Container'
+import { WelcomeSection } from '../components/organisms/WelcomeSection'
+import { ActionButtons } from '../components/organisms/ActionButtons'
 
 const actionButtons = [
   {

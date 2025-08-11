@@ -1,4 +1,5 @@
-import { Title, Subtitle } from '../../atoms'
+import { Title } from '../../atoms/Title'
+import { Subtitle } from '../../atoms/Subtitle'
 import './styles.css'
 
 interface ErrorDisplayProps {
