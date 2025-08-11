@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react'
 import { CalendarController } from '../controllers/CalendarController'
 import type { AdventCalendar, DayContent } from '../types/calendar'
-import { Container, Title, BackLink, Subtitle, Modal } from '../components/atoms'
-import { 
-  CalendarUploader,
-  TestModeToggle,
-  CountdownTimer,
-  CalendarViewer,
-  DayViewer,
-  CreateOwnSection
-} from '../components/organisms'
+import { Container } from '../components/atoms/Container'
+import { Title } from '../components/atoms/Title'
+import { BackLink } from '../components/atoms/BackLink'
+import { Subtitle } from '../components/atoms/Subtitle'
+import { Modal } from '../components/atoms/Modal'
+import { CalendarUploader } from '../components/organisms/CalendarUploader'
+import { TestModeToggle } from '../components/organisms/TestModeToggle'
+import { CountdownTimer } from '../components/organisms/CountdownTimer'
+import { CalendarViewer } from '../components/organisms/CalendarViewer'
+import { DayViewer } from '../components/organisms/DayViewer'
+import { CreateOwnSection } from '../components/organisms/CreateOwnSection'
 
 export function ViewCalendar() {
   const [controller] = useState(() => new CalendarController())

@@ -1,4 +1,6 @@
-import { FormGroup, Label, Input } from '../../atoms'
+import { FormGroup } from '../../atoms/FormGroup'
+import { Label } from '../../atoms/Label'
+import { Input } from '../../atoms/Input'
 
 interface CalendarFormProps {
   title: string

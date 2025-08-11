@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Button } from '../../atoms'
+import { Button } from '../../atoms/Button'
 import './styles.css'
 
 interface CreateOwnSectionProps {
