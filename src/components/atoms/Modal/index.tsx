@@ -27,19 +27,19 @@ export function Modal({ isOpen, onClose, children, header, className }: ModalPro
       onCancel={onClose}
     >
       <div className="modal-content">
-        {header && (
-          <div className="modal-header">
+        <div className="modal-header">
+          {header && (
             <h2 className="modal-title">{header}</h2>
-            <button
-              type="button"
-              className="modal-close"
-              onClick={onClose}
-              aria-label="Close modal"
-            >
-              ×
-            </button>
-          </div>
-        )}
+          )}
+          <button
+            type="button"
+            className="modal-close"
+            onClick={onClose}
+            aria-label="Close modal"
+          >
+            ×
+          </button>
+        </div>
         <div className="modal-body">
           {children}
         </div>
