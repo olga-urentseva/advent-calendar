@@ -1,4 +1,4 @@
-import type { AdventCalendar, DayContent, ContentType, MediaSource } from '../types/calendar'
+import type { AdventCalendar, DayContent } from '../types/calendar'
 
 export class CalendarModel {
   private calendar: AdventCalendar
@@ -28,16 +28,28 @@ export class CalendarModel {
   }
 
   setDayCount(count: number): void {
+    const currentDays = this.calendar.days
     const newDays: DayContent[] = []
+    
     for (let i = 1; i <= count; i++) {
-      newDays.push({
-        day: i,
-        type: 'text',
-        source: 'upload',
-        content: '',
-        title: `Day ${i}`
-      })
+      // Try to find existing content for this day
+      const existingDay = currentDays.find(d => d.day === i)
+      
+      if (existingDay) {
+        // Preserve existing content
+        newDays.push({ ...existingDay })
+      } else {
+        // Create new empty day
+        newDays.push({
+          day: i,
+          type: 'text',
+          source: 'upload',
+          content: '',
+          title: `Day ${i}`
+        })
+      }
     }
+    
     this.calendar.days = newDays
   }
 
@@ -103,7 +115,7 @@ export class CalendarModel {
     try {
       const imported = JSON.parse(data) as AdventCalendar
       this.calendar = imported
-    } catch (error) {
+    } catch {
       throw new Error('Invalid calendar data format')
     }
   }

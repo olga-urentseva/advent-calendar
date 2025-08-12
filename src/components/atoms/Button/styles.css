@@ -1,0 +1,78 @@
+/* Button styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 1.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: clamp(12rem, 20vw, 17.5rem);
+  margin: 0.5rem;
+  box-shadow: 0 0.25rem 0.5rem var(--color-shadow);
+}
+
+.btn:hover {
+  transform: translateY(-0.125rem);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  background: var(--color-disabled);
+  color: var(--color-text-light);
+  box-shadow: none;
+}
+
+.btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+  background: var(--color-disabled);
+  color: var(--color-text-light);
+}
+
+.btn-primary {
+  background: var(--color-accent);
+  color: var(--color-primary);
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.25rem 0.5rem var(--color-shadow);
+}
+
+.btn-primary:hover {
+  background: var(--color-accent-light);
+  transform: translateY(-0.125rem);
+  box-shadow: 0 0.5rem 1rem var(--color-shadow);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-secondary-light);
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: none;
+}
+
+.btn-secondary:hover {
+  background: transparent;
+  color: var(--color-secondary-dark);
+  transform: translateY(-0.125rem);
+  box-shadow: none;
+}
+
+.btn-danger {
+  background: var(--color-alert);
+  color: var(--color-text);
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.25rem 0.5rem var(--color-shadow);
+}
+
+.btn-danger:hover {
+  transform: translateY(-0.125rem);
+}

@@ -1,4 +1,7 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react'
+import { Component, type ReactNode } from 'react'
+import { Container } from './atoms/Container'
+import { ErrorDisplay } from './organisms/ErrorDisplay'
+import { ErrorActions } from './organisms/ErrorActions'
 
 interface Props {
   children: ReactNode
@@ -34,37 +37,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="error-boundary">
-          <div className="container">
-            <h1 className="title">🚨 Something went wrong</h1>
-            <p className="subtitle">
-              An unexpected error occurred. Please try refreshing the page.
-            </p>
-            
-            <div className="error-details">
-              <h3>Error Details:</h3>
-              <pre className="error-stack">
-                {this.state.error?.toString()}
-              </pre>
-              
-              {this.state.errorInfo && (
-                <details>
-                  <summary>Component Stack</summary>
-                  <pre className="error-stack">
-                    {this.state.errorInfo.componentStack}
-                  </pre>
-                </details>
-              )}
-            </div>
-
-            <div className="error-actions">
-              <button 
-                className="btn btn-primary"
-                onClick={() => window.location.reload()}
-              >
-                🔄 Refresh Page
-              </button>
-            </div>
-          </div>
+          <Container>
+            <ErrorDisplay 
+              error={this.state.error} 
+              errorInfo={this.state.errorInfo} 
+            />
+            <ErrorActions />
+          </Container>
         </div>
       )
     }

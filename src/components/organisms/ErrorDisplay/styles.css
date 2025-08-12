@@ -1,0 +1,27 @@
+/* Error display */
+.error-display {
+  text-align: center;
+}
+
+.error-details {
+  margin: 1.5rem 0;
+  text-align: left;
+}
+
+.error-details h3 {
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+
+.error-stack {
+  background: var(--color-accent);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  border: 1px solid var(--color-secondary-light);
+  max-height: clamp(10rem, 30vh, 12.5rem);
+  overflow-y: auto;
+}

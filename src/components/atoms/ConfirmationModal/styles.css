@@ -1,0 +1,64 @@
+.confirmation-modal {
+  --confirmation-border-color: var(--color-accent);
+  --confirmation-bg-color: var(--color-secondary);
+  --confirmation-text-color: var(--color-text-primary);
+}
+
+.confirmation-modal.warning {
+  --confirmation-border-color: oklch(from var(--color-accent) l c h / 0.8);
+  --confirmation-bg-color: oklch(from var(--color-secondary) l c h / 0.95);
+}
+
+.confirmation-modal.danger {
+  --confirmation-border-color: oklch(0.6 0.2 25);
+  --confirmation-bg-color: oklch(from var(--color-secondary) l c h / 0.95);
+}
+
+.confirmation-modal.info {
+  --confirmation-border-color: oklch(from var(--color-primary) l c h / 0.8);
+  --confirmation-bg-color: oklch(from var(--color-secondary) l c h / 0.95);
+}
+
+.confirmation-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.confirmation-message {
+  padding: 0 2rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--confirmation-text-color);
+  margin: 0;
+  text-align: center;
+}
+
+.confirmation-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.confirmation-actions .btn-cancel {
+  min-width: 6rem;
+}
+
+.confirmation-actions .btn-confirm {
+  min-width: 6rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 30rem) {
+  .confirmation-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .confirmation-actions button {
+    width: 100%;
+    max-width: 12rem;
+  }
+}

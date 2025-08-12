@@ -1,0 +1,68 @@
+/* Upload section */
+.upload-section {
+  text-align: center;
+  padding: 2rem 1.5rem;
+}
+
+.upload-section h3 {
+  margin-bottom: 1rem;
+  color: var(--color-text);
+}
+
+.upload-section p {
+  margin-bottom: 1rem;
+  color: var(--color-text);
+}
+
+.file-input {
+  display: none;
+}
+
+.file-upload-area {
+  border: 2px dashed var(--color-accent);
+  border-radius: 0.75rem;
+  background: var(--color-secondary-light);
+  padding: 3rem 5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 1rem 0;
+}
+
+.file-upload-area:hover {
+  border-color: var(--color-accent-light);
+  background: var(--color-accent);
+  transform: translateY(-0.125rem);
+}
+
+.file-upload-area.dragging {
+  border-color: var(--color-success);
+  background: var(--color-success-color);
+  transform: scale(1.02);
+}
+
+.file-upload-label {
+  cursor: pointer;
+  display: block;
+}
+
+.upload-icon {
+  font-size: clamp(2rem, 8vw, 3rem);
+  margin-bottom: 1rem;
+}
+
+.upload-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.upload-text strong {
+  font-size: 1.125rem;
+  color: var(--color-text);
+}
+
+.upload-text span {
+  font-size: 1rem;
+  color: var(--color-text);
+}

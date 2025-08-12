@@ -1,0 +1,30 @@
+/* Export section */
+.export-section {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--color-secondary-light);
+}
+
+.progress-text {
+  margin-top: 1rem;
+  color: var(--color-text-light);
+  font-size: 1rem;
+}
+
+.validation-info {
+  margin-top: 0.25rem;
+  color: var(--color-text-light);
+  font-size: 0.875rem;
+}
+
+.validation-info small {
+  color: var(--color-text-light);
+}
+
+/* Debug button styles */
+.debug-btn {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  min-width: auto;
+}
