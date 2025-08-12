@@ -17,7 +17,6 @@ interface DayEditorProps {
 export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps) {
   const [contentType, setContentType] = useState<ContentType>(dayContent?.type || 'text')
   const [mediaSource, setMediaSource] = useState<MediaSource>(dayContent?.source || 'upload')
-  const [title, setTitle] = useState(dayContent?.title || '')
   const [content, setContent] = useState(dayContent?.content || '')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -26,8 +25,6 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
 
   // Check if form is valid for saving
   const isFormValid = () => {
-    if (!title.trim()) return false
-    
     if (contentType === 'text') {
       return content.trim().length > 0
     } else {
@@ -110,7 +107,7 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
       type: contentType,
       source: finalSource,
       content: finalContent,
-      title: title.trim()
+      title: `Day ${day}`
     }
     
     await onSave(dayContent)
@@ -142,6 +139,11 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
     setSelectedFile(null)
     cleanupPreviewUrl()
     fileInputRef.current?.click()
+  }
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null)
+    cleanupPreviewUrl()
   }
 
   // Cleanup on unmount
@@ -243,11 +245,20 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
             <Button 
               type="button" 
               variant="secondary" 
+              onClick={handleRemoveFile}
+              className='btn-remove'
+            >
+              🗑️ Remove
+            </Button>
+            <Button 
+              type="button" 
+              variant="secondary" 
               onClick={handleReplaceFile}
               className='btn-replace'
             >
               🔄 Replace
             </Button>
+            
           </div>
         )}
       </div>
@@ -257,19 +268,6 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
   return (
     <div className="day-editor">
       <form ref={formRef} onSubmit={handleFormSubmit}>
-        <FormGroup>
-          <Label htmlFor={`day-${day}-title`} className='label'>Title</Label>
-          <Input
-            id={`day-${day}-title`}
-            name="title"
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter title"
-            required
-          />
-        </FormGroup>
-
         <FormGroup>
           <Label htmlFor={`day-${day}-content-type`} className='label'>Content Type</Label>
           <div className="content-type-buttons" id={`day-${day}-content-type`} role="group">

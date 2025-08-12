@@ -290,3 +290,7 @@
   min-width: clamp(4rem, 12vw, 6.25rem);
   margin: 0;
 }
+
+.btn-remove {
+  
+}
