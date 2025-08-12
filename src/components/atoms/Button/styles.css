@@ -52,7 +52,7 @@
 
 .btn-secondary {
   background: transparent;
-  color: var(--color-secondary);
+  color: var(--color-secondary-light);
   border: none;
   border-radius: 0.75rem;
   box-shadow: none;
@@ -60,7 +60,7 @@
 
 .btn-secondary:hover {
   background: transparent;
-  color: var(--color-secondary-light);
+  color: var(--color-secondary-dark);
   transform: translateY(-0.125rem);
   box-shadow: none;
 }
