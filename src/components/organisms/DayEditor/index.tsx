@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import type { DayContent, ContentType, MediaSource } from '../../../types/calendar'
 import { FormGroup } from '../../atoms/FormGroup'
 import { Label } from '../../atoms/Label'
@@ -20,6 +20,7 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
   const [title, setTitle] = useState(dayContent?.title || '')
   const [content, setContent] = useState(dayContent?.content || '')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -36,6 +37,45 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
       } else {
         return content.trim().length > 0
       }
+    }
+  }
+
+  // Check if preview is available
+  const hasPreviewContent = () => {
+    if (contentType === 'text') {
+      return content.trim().length > 0
+    } else {
+      if (mediaSource === 'upload') {
+        return selectedFile !== null
+      } else {
+        return content.trim().length > 0
+      }
+    }
+  }
+
+
+
+  // Clean up preview URL when component unmounts or file changes
+  const cleanupPreviewUrl = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+      setPreviewUrl(null)
+    }
+  }
+
+  // Auto-generate preview URL when file is selected
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] || null
+    
+    // Clean up previous preview URL first
+    cleanupPreviewUrl()
+    
+    setSelectedFile(file)
+    
+    if (file) {
+      // Generate new preview URL
+      const url = URL.createObjectURL(file)
+      setPreviewUrl(url)
     }
   }
 
@@ -83,6 +123,7 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
     // Clear content when switching types
     setContent('')
     setSelectedFile(null)
+    cleanupPreviewUrl()
   }
 
   const handleMediaSourceChange = (newSource: MediaSource) => {
@@ -90,11 +131,127 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
     // Clear content when switching sources
     setContent('')
     setSelectedFile(null)
+    cleanupPreviewUrl()
   }
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] || null
-    setSelectedFile(file)
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+    setContent(e.target.value)
+  }
+
+  const handleReplaceFile = () => {
+    setSelectedFile(null)
+    cleanupPreviewUrl()
+    fileInputRef.current?.click()
+  }
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanupPreviewUrl()
+    }
+  }, [])
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Preview state:', { 
+      hasPreviewContent: hasPreviewContent(), 
+      selectedFile, 
+      previewUrl, 
+      contentType, 
+      mediaSource 
+    })
+  }, [selectedFile, previewUrl, contentType, mediaSource])
+
+  // Render preview content
+  const renderPreview = () => {
+    // Show preview if there's any content
+    const shouldShowPreview = 
+      (contentType === 'text' && content.trim().length > 0) ||
+      (contentType !== 'text' && mediaSource === 'upload' && selectedFile) ||
+      (contentType !== 'text' && mediaSource === 'url' && content.trim().length > 0)
+
+    if (!shouldShowPreview) return null
+
+    return (
+      <div className="preview-mode">
+        <div className="content-preview">
+          <h4>Preview</h4>
+          
+          {contentType === 'text' && (
+            <div className="text-preview">
+              <p>{content}</p>
+            </div>
+          )}
+          
+          {contentType === 'image' && (
+            <div className="image-preview">
+              {mediaSource === 'upload' && selectedFile && previewUrl && (
+                <img 
+                  src={previewUrl} 
+                  alt="Preview" 
+                  className="preview-image"
+                  onError={(e) => {
+                    console.error('Image preview error:', e)
+                    cleanupPreviewUrl()
+                  }}
+                />
+              )}
+              {mediaSource === 'url' && content && (
+                <img 
+                  src={content} 
+                  alt="Preview" 
+                  className="preview-image"
+                  onError={(e) => {
+                    console.error('URL image preview error:', e)
+                    e.currentTarget.style.display = 'none'
+                  }}
+                />
+              )}
+            </div>
+          )}
+          
+          {contentType === 'video' && (
+            <div className="video-preview">
+              {mediaSource === 'upload' && selectedFile && previewUrl && (
+                <video 
+                  src={previewUrl} 
+                  controls 
+                  className="preview-video"
+                  onError={(e) => {
+                    console.error('Video preview error:', e)
+                    cleanupPreviewUrl()
+                  }}
+                />
+              )}
+              {mediaSource === 'url' && content && (
+                <video 
+                  src={content} 
+                  controls 
+                  className="preview-video"
+                  onError={(e) => {
+                    console.error('URL video preview error:', e)
+                    e.currentTarget.style.display = 'none'
+                  }}
+                />
+              )}
+            </div>
+          )}
+        </div>
+        
+        {mediaSource === 'upload' && selectedFile && (
+          <div className="preview-actions">
+            <Button 
+              type="button" 
+              variant="secondary" 
+              onClick={handleReplaceFile}
+              className='btn-replace'
+            >
+              🔄 Replace
+            </Button>
+          </div>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -158,7 +315,7 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
               id={`day-${day}-content`}
               name="content"
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={handleContentChange}
               placeholder="Enter your message"
               rows={4}
             />
@@ -224,13 +381,16 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
                   name="content"
                   type="url"
                   value={content}
-                  onChange={(e) => setContent(e.target.value)}
+                  onChange={handleContentChange}
                   placeholder={`Enter ${contentType === 'image' ? 'image' : 'video'} URL`}
                 />
               )}
             </div>
           )}
         </FormGroup>
+
+        {/* Preview Section */}
+        {renderPreview()}
 
         <div className="editor-actions">
           <Button type="button" variant="secondary" onClick={onCancel}>
