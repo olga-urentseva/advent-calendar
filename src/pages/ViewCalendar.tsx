@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { CalendarController } from '../controllers/CalendarController'
+import { Calendar } from '../core/calendar'
 import type { AdventCalendar, DayContent } from '../types/calendar'
 import { Container } from '../components/atoms/Container'
 import { Title } from '../components/atoms/Title'
@@ -14,8 +14,8 @@ import { DayViewer } from '../components/organisms/DayViewer'
 import { CreateOwnSection } from '../components/organisms/CreateOwnSection'
 
 export function ViewCalendar() {
-  const [controller] = useState(() => new CalendarController())
-  const [calendar, setCalendar] = useState<AdventCalendar | null>(null)
+  const [calendar] = useState(() => new Calendar())
+  const [calendarData, setCalendarData] = useState<AdventCalendar | null>(null)
   const [selectedDay, setSelectedDay] = useState<DayContent | null>(null)
   const [error, setError] = useState('')
   const [isDragging, setIsDragging] = useState(false)
@@ -25,13 +25,13 @@ export function ViewCalendar() {
 
   // Update countdown every second
   useEffect(() => {
-    if (!calendar) return
+    if (!calendarData) return
     
     calculateCountdown()
     const interval = setInterval(calculateCountdown, 1000)
     
     return () => clearInterval(interval)
-  }, [calendar, testMode])
+  }, [calendarData, testMode])
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -43,11 +43,27 @@ export function ViewCalendar() {
   const processFile = async (file: File) => {
     try {
       setError('')
-      await controller.importCalendar(file)
-      setCalendar(controller.getCalendar())
+      const data = await readFile(file)
+      calendar.importCalendar(data)
+      setCalendarData(calendar.getCalendar())
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to import calendar')
     }
+  }
+
+  const readFile = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        try {
+          resolve(e.target?.result as string)
+        } catch {
+          reject(new Error('Failed to read file'))
+        }
+      }
+      reader.onerror = () => reject(new Error('Failed to read file'))
+      reader.readAsText(file)
+    })
   }
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -154,7 +170,7 @@ export function ViewCalendar() {
     return false
   }
 
-  if (!calendar) {
+  if (!calendarData) {
     return (
       <Container>
         <div className="header">
@@ -187,8 +203,8 @@ export function ViewCalendar() {
         <BackLink to="/">
           ← Back
         </BackLink>
-        <Title>{calendar.title}</Title>
-        <Subtitle>Created by {calendar.createdBy}</Subtitle>
+        <Title>{calendarData.title}</Title>
+        <Subtitle>Created by {calendarData.createdBy}</Subtitle>
       </div>
 
       <TestModeToggle
@@ -201,7 +217,7 @@ export function ViewCalendar() {
       )}
 
       <CalendarViewer
-        days={calendar.days}
+        days={calendarData.days}
         isDayUnlocked={isDayUnlocked}
         onDayClick={handleDayClick}
       />
