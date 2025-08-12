@@ -394,16 +394,6 @@ body {
   box-shadow: 0 0.25rem 0.5rem var(--color-shadow);
 }
 
-.preview-actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 2px solid var(--color-secondary-light);
-  flex-wrap: wrap;
-}
-
 .preview-actions .btn {
   min-width: clamp(5rem, 15vw, 7.5rem);
   margin: 0;
