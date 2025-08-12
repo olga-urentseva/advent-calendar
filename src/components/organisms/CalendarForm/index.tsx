@@ -3,35 +3,20 @@ import { Label } from '../../atoms/Label'
 import { Input } from '../../atoms/Input'
 
 interface CalendarFormProps {
-  title: string
   createdBy: string
   to: string
-  onTitleChange: (title: string) => void
   onCreatedByChange: (createdBy: string) => void
   onToChange: (to: string) => void
 }
 
 export function CalendarForm({ 
-  title, 
   createdBy, 
   to, 
-  onTitleChange, 
   onCreatedByChange, 
   onToChange 
 }: CalendarFormProps) {
   return (
     <div className="calendar-form">
-      <FormGroup>
-        <Label htmlFor="title">Calendar Title</Label>
-        <Input
-          id="title"
-          type="text"
-          value={title}
-          onChange={(e) => onTitleChange(e.target.value)}
-          placeholder="Enter calendar title"
-        />
-      </FormGroup>
-
       <FormGroup>
         <Label htmlFor="created-by">Created By</Label>
         <Input

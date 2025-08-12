@@ -3,7 +3,6 @@ import './styles.css'
 
 interface ExportSectionProps {
   isExporting: boolean
-  title: string
   createdBy: string
   to: string
   completedDays: number
@@ -16,7 +15,6 @@ interface ExportSectionProps {
 
 export function ExportSection({
   isExporting,
-  title,
   createdBy,
   to,
   completedDays,
@@ -31,13 +29,12 @@ export function ExportSection({
       <Button
         variant="primary"
         onClick={onExport}
-        disabled={isExporting || !(title && createdBy && to && completedDays === currentDayCount)}
+        disabled={isExporting || !isFullyCompleted}
       >
         {isExporting ? 'Exporting...' : 'Export Calendar'}
       </Button>
       <div className="validation-info">
         <small>
-          Title: {title ? '✓' : '✗'} | 
           Creator: {createdBy ? '✓' : '✗'} | 
           To: {to ? '✓' : '✗'} | 
           Completed: {completedDays}/{currentDayCount} |

@@ -20,8 +20,40 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
   const [content, setContent] = useState(dayContent?.content || '')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Initialize from existing content
+  useEffect(() => {
+    if (dayContent) {
+      setContentType(dayContent.type)
+      setMediaSource(dayContent.source)
+      setContent(dayContent.content || '')
+      
+      // If there's existing content and it's a base64 file, create preview URL
+      if (dayContent.content && dayContent.content.startsWith('data:')) {
+        setPreviewUrl(dayContent.content)
+      }
+    } else {
+      // Reset form when no dayContent
+      setContentType('text')
+      setMediaSource('upload')
+      setContent('')
+      setSelectedFile(null)
+      cleanupPreviewUrl()
+    }
+  }, [dayContent])
+
+  // Convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = () => reject(new Error('Failed to read file'))
+      reader.readAsDataURL(file)
+    })
+  }
 
   // Check if form is valid for saving
   const isFormValid = () => {
@@ -30,34 +62,19 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
     } else {
       // For media content
       if (mediaSource === 'upload') {
-        return selectedFile !== null
+        return selectedFile !== null || (content && content.startsWith('data:'))
       } else {
         return content.trim().length > 0
       }
     }
   }
-
-  // Check if preview is available
-  const hasPreviewContent = () => {
-    if (contentType === 'text') {
-      return content.trim().length > 0
-    } else {
-      if (mediaSource === 'upload') {
-        return selectedFile !== null
-      } else {
-        return content.trim().length > 0
-      }
-    }
-  }
-
-
 
   // Clean up preview URL when component unmounts or file changes
   const cleanupPreviewUrl = () => {
-    if (previewUrl) {
+    if (previewUrl && previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(previewUrl)
-      setPreviewUrl(null)
     }
+    setPreviewUrl(null)
   }
 
   // Auto-generate preview URL when file is selected
@@ -83,34 +100,49 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
       return
     }
 
-    let finalContent = content.trim()
-    let finalSource: MediaSource = 'upload'
+    setIsProcessing(true)
 
-    if (contentType === 'text') {
-      finalContent = content.trim()
-    } else {
-      // Handle media content
-      if (mediaSource === 'upload' && selectedFile) {
-        // Create object URL for file preview
-        finalContent = URL.createObjectURL(selectedFile)
-        finalSource = 'upload'
-      } else if (mediaSource === 'url' && finalContent) {
-        finalSource = 'url'
+    try {
+      let finalContent = content.trim()
+      let finalSource: MediaSource = 'upload'
+
+      if (contentType === 'text') {
+        finalContent = content.trim()
       } else {
-        alert('Please provide media content')
-        return
+        // Handle media content
+        if (mediaSource === 'upload' && selectedFile) {
+          // Convert file to base64 for storage
+          finalContent = await fileToBase64(selectedFile)
+          finalSource = 'upload'
+        } else if (mediaSource === 'upload' && content && content.startsWith('data:')) {
+          // Keep existing base64 content
+          finalContent = content
+          finalSource = 'upload'
+        } else if (mediaSource === 'url' && finalContent) {
+          finalSource = 'url'
+        } else {
+          alert('Please provide media content')
+          return
+        }
       }
-    }
 
-    const dayContent: DayContent = {
-      day,
-      type: contentType,
-      source: finalSource,
-      content: finalContent,
-      title: `Day ${day}`
+      const dayContent: DayContent = {
+        day,
+        type: contentType,
+        source: finalSource,
+        content: finalContent,
+        title: `Day ${day}`,
+        fileSize: selectedFile?.size,
+        originalFileName: selectedFile?.name
+      }
+      
+      await onSave(dayContent)
+    } catch (error) {
+      console.error('Error saving day content:', error)
+      alert('Failed to save content. Please try again.')
+    } finally {
+      setIsProcessing(false)
     }
-    
-    await onSave(dayContent)
   }
 
   const handleContentTypeChange = (newType: ContentType) => {
@@ -144,6 +176,7 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
   const handleRemoveFile = () => {
     setSelectedFile(null)
     cleanupPreviewUrl()
+    setContent('')
   }
 
   // Cleanup on unmount
@@ -153,23 +186,13 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
     }
   }, [])
 
-  // Debug logging
-  useEffect(() => {
-    console.log('Preview state:', { 
-      hasPreviewContent: hasPreviewContent(), 
-      selectedFile, 
-      previewUrl, 
-      contentType, 
-      mediaSource 
-    })
-  }, [selectedFile, previewUrl, contentType, mediaSource])
-
   // Render preview content
   const renderPreview = () => {
     // Show preview if there's any content
     const shouldShowPreview = 
       (contentType === 'text' && content.trim().length > 0) ||
       (contentType !== 'text' && mediaSource === 'upload' && selectedFile) ||
+      (contentType !== 'text' && mediaSource === 'upload' && content && content.startsWith('data:')) ||
       (contentType !== 'text' && mediaSource === 'url' && content.trim().length > 0)
 
     if (!shouldShowPreview) return null
@@ -195,6 +218,16 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
                   onError={(e) => {
                     console.error('Image preview error:', e)
                     cleanupPreviewUrl()
+                  }}
+                />
+              )}
+              {mediaSource === 'upload' && content && content.startsWith('data:') && !selectedFile && (
+                <img 
+                  src={content} 
+                  alt="Preview" 
+                  className="preview-image"
+                  onError={(e) => {
+                    console.error('Stored image preview error:', e)
                   }}
                 />
               )}
@@ -225,6 +258,16 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
                   }}
                 />
               )}
+              {mediaSource === 'upload' && content && content.startsWith('data:') && !selectedFile && (
+                <video 
+                  src={content} 
+                  controls 
+                  className="preview-video"
+                  onError={(e) => {
+                    console.error('Stored video preview error:', e)
+                  }}
+                />
+              )}
               {mediaSource === 'url' && content && (
                 <video 
                   src={content} 
@@ -240,7 +283,7 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
           )}
         </div>
         
-        {mediaSource === 'upload' && selectedFile && (
+        {(mediaSource === 'upload' && selectedFile) || (mediaSource === 'upload' && content && content.startsWith('data:')) ? (
           <div className="preview-actions">
             <Button 
               type="button" 
@@ -258,9 +301,8 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
             >
               🔄 Replace
             </Button>
-            
           </div>
-        )}
+        ) : null}
       </div>
     )
   }
@@ -394,8 +436,8 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
           <Button type="button" variant="secondary" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit" variant="primary" disabled={!isFormValid()}>
-            Save
+          <Button type="submit" variant="primary" disabled={!isFormValid() || isProcessing}>
+            {isProcessing ? 'Saving...' : 'Save'}
           </Button>
         </div>
       </form>
