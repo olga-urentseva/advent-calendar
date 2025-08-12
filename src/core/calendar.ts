@@ -80,7 +80,29 @@ export class Calendar {
 
   // Day count methods
   setDayCount(count: number): void {
-    this.calendar.days = this.initializeDays(count)
+    const currentDays = this.calendar.days
+    const newDays: DayContent[] = []
+    
+    for (let i = 1; i <= count; i++) {
+      // Try to find existing content for this day
+      const existingDay = currentDays.find(d => d.day === i)
+      
+      if (existingDay) {
+        // Preserve existing content
+        newDays.push({ ...existingDay })
+      } else {
+        // Create new empty day
+        newDays.push({
+          day: i,
+          type: 'text',
+          source: 'upload',
+          content: '',
+          title: `Day ${i}`
+        })
+      }
+    }
+    
+    this.calendar.days = newDays
     if (!this.isImported) {
       this.storage.save(this.calendar)
     }

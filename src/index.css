@@ -25,6 +25,7 @@
   
   /* Semantic Colors - Status */
   --color-error: oklch(0.65 0.25 25);
+  --color-alert: oklch(0.72 0.1569 17.02);
   --color-backdrop: oklch(0.2 0.1053 271.51);
   --color-shadow: oklch(0 0 0 / 0.4);
   

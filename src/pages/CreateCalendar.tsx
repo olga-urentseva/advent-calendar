@@ -6,6 +6,7 @@ import { Title } from '../components/atoms/Title'
 import { BackLink } from '../components/atoms/BackLink'
 import { Button } from '../components/atoms/Button'
 import { Modal } from '../components/atoms/Modal'
+import { ConfirmationModal } from '../components/atoms/ConfirmationModal'
 import { CalendarForm } from '../components/organisms/CalendarForm'
 import { DayCountSelector } from '../components/organisms/DayCountSelector'
 import { CalendarGrid } from '../components/organisms/CalendarGrid'
@@ -23,6 +24,10 @@ export function CreateCalendar() {
   const [error, setError] = useState('')
   const [dayCount, setDayCount] = useState(25)
   const [isFullyCompleted, setIsFullyCompleted] = useState(false)
+  const [showConfirmation, setShowConfirmation] = useState(false)
+  const [pendingDayCount, setPendingDayCount] = useState<number | null>(null)
+  const [confirmationMessage, setConfirmationMessage] = useState('')
+  const [confirmationAction, setConfirmationAction] = useState<'dayCount' | 'clearData' | null>(null)
 
   // Load existing data from calendar on component mount
   useEffect(() => {
@@ -55,9 +60,91 @@ export function CreateCalendar() {
   }
 
   const handleDayCountChange = (count: number) => {
+    const calendarData = calendarInstance.getCalendar()
+    
+    // Check which specific days have content and will be lost
+    const daysWithContent = calendarData.days
+      .filter(day => day.content.trim() !== '')
+      .map(day => day.day)
+    
+    const daysToBeLost = daysWithContent.filter(day => day > count)
+    const daysToBePreserved = daysWithContent.filter(day => day <= count)
+    
+    // If content will be lost, show confirmation modal
+    if (daysToBeLost.length > 0) {
+      const message = `Changing to ${count} days will permanently delete content from days ${daysToBeLost.join(', ')}. Are you sure you want to continue?`
+      setConfirmationMessage(message)
+      setPendingDayCount(count)
+      setConfirmationAction('dayCount')
+      setShowConfirmation(true)
+      return
+    }
+    
+    // No content will be lost, proceed immediately
+    applyDayCountChange(count, daysWithContent, daysToBePreserved, daysToBeLost)
+  }
+
+  const applyDayCountChange = (count: number, daysWithContent: number[], daysToBePreserved: number[], daysToBeLost: number[]) => {
     setDayCount(count)
-    // Reset the calendar with new day count
+    // Update the calendar with new day count (content will be preserved)
     calendarInstance.setDayCount(count)
+    
+    // Show notification about content preservation/loss
+    if (daysWithContent.length > 0) {
+      let message = ''
+      
+      if (daysToBePreserved.length > 0) {
+        message += `✅ Days ${daysToBePreserved.join(', ')} preserved`
+      }
+      
+      if (daysToBeLost.length > 0) {
+        if (message) message += '\n'
+        message += `⚠️ Days ${daysToBeLost.join(', ')} will be lost`
+      }
+      
+      // Show temporary notification
+      setError('') // Clear any existing errors
+      const notification = document.createElement('div')
+      notification.className = 'content-preservation-notification'
+      notification.textContent = message
+      notification.style.cssText = `
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        background: var(--color-accent);
+        color: var(--color-primary);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.2);
+        z-index: 1000;
+        max-width: 20rem;
+        white-space: pre-line;
+        font-size: 0.875rem;
+      `
+      document.body.appendChild(notification)
+      
+      // Remove notification after 4 seconds
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification)
+        }
+      }, 4000)
+    }
+  }
+
+  const handleConfirmDayCountChange = () => {
+    if (pendingDayCount !== null) {
+      const calendarData = calendarInstance.getCalendar()
+      const daysWithContent = calendarData.days
+        .filter(day => day.content.trim() !== '')
+        .map(day => day.day)
+      
+      const daysToBeLost = daysWithContent.filter(day => day > pendingDayCount)
+      const daysToBePreserved = daysWithContent.filter(day => day <= pendingDayCount)
+      
+      applyDayCountChange(pendingDayCount, daysWithContent, daysToBePreserved, daysToBeLost)
+      setPendingDayCount(null)
+    }
   }
 
   const handleSaveDay = async (day: number, dayContent: DayContent) => {
@@ -119,13 +206,9 @@ export function CreateCalendar() {
   }
 
   const handleClearAllData = () => {
-    if (confirm('Are you sure you want to clear all calendar data? This action cannot be undone.')) {
-      calendarInstance.clearStorage()
-      setCreatedBy('')
-      setTo('')
-      setDayCount(25)
-      setError('')
-    }
+    setConfirmationMessage('Are you sure you want to clear all calendar data? This action cannot be undone.')
+    setConfirmationAction('clearData')
+    setShowConfirmation(true)
   }
 
   const isDayCompleted = (day: number): boolean => {
@@ -217,6 +300,33 @@ export function CreateCalendar() {
           />
         )}
       </Modal>
+
+      <ConfirmationModal
+        isOpen={showConfirmation}
+        onClose={() => {
+          setShowConfirmation(false)
+          setPendingDayCount(null)
+          setConfirmationAction(null)
+        }}
+        onConfirm={() => {
+          if (confirmationAction === 'dayCount') {
+            handleConfirmDayCountChange()
+          } else if (confirmationAction === 'clearData') {
+            calendarInstance.clearStorage()
+            setCreatedBy('')
+            setTo('')
+            setDayCount(25)
+            setError('')
+            setShowConfirmation(false)
+            setConfirmationAction(null)
+          }
+        }}
+        title={confirmationAction === 'dayCount' ? 'Confirm Day Count Change' : 'Confirm Clear Data'}
+        message={confirmationMessage}
+        confirmText={confirmationAction === 'dayCount' ? 'Yes, Change Days' : 'Yes, Clear All'}
+        cancelText="Cancel"
+        variant="danger"
+      />
     </Container>
   )
 } 
