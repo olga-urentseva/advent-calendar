@@ -19,7 +19,6 @@
 .content-type-buttons {
   display: flex;
   gap: 0.5rem;
-  margin-top: 0.25rem;
   width: 100%;
 }
 
@@ -57,7 +56,7 @@
 
 /* Media options */
 .media-options {
-  margin-top: 1rem;
+  
 }
 
 .media-source-buttons {
@@ -201,6 +200,7 @@
   font-size: 1rem;
   color: var(--color-success);
   font-weight: 500;
+  text-align: center;
 }
 
 /* Preview mode styles */
@@ -292,5 +292,5 @@
 }
 
 .btn-remove {
-  
+
 }
