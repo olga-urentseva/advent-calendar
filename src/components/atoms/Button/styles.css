@@ -64,3 +64,15 @@
   transform: translateY(-0.125rem);
   box-shadow: none;
 }
+
+.btn-danger {
+  background: var(--color-alert);
+  color: var(--color-text);
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.25rem 0.5rem var(--color-shadow);
+}
+
+.btn-danger:hover {
+  transform: translateY(-0.125rem);
+}

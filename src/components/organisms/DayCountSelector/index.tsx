@@ -34,6 +34,9 @@ export function DayCountSelector({ dayCount, onDayCountChange }: DayCountSelecto
           7 Days
         </button>
       </div>
+      <p className="day-count-info">
+        💡 Content will be preserved for days within the new range. Days beyond the new range will be lost.
+      </p>
     </FormGroup>
   )
 }

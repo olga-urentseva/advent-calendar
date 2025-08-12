@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import './styles.css'
 
 interface ButtonProps {
-  variant?: 'primary' | 'secondary'
+  variant?: 'primary' | 'secondary' | 'danger'
   disabled?: boolean
   children: ReactNode
   onClick?: () => void
