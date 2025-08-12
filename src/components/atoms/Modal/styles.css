@@ -7,20 +7,19 @@
   background: transparent;
   box-shadow: none;
   margin: auto;
-  
+  width: 90vw;
+  max-width: 40rem;
   /* Use native modal behavior - ESC works automatically */
   &::backdrop {
     background: var(--color-shadow);
     backdrop-filter: blur(0.25rem);
   }
 }
-  
+
 /* Modal Content Container */
 .modal-content {
   background: var(--color-accent-light);
   border-radius: 1rem;
-  max-width: clamp(20rem, 80vw, 37.5rem);
-  width: 100%;
   overflow: hidden;
   position: relative;
   box-shadow: 0 0.5rem 2rem var(--color-shadow);
@@ -31,11 +30,10 @@
 /* Modal Header */
 .modal-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem 1.5rem 0 1.5rem;
+  padding: 1.5rem 1.5rem 0;
   position: relative;
   min-height: 3rem;
+  align-items: center;
 }
 
 .modal-title {
@@ -44,7 +42,7 @@
   font-weight: 700;
   color: var(--color-secondary);
   flex: 1;
-  padding-right: 2rem;
+  text-align: center;
 }
 
 /* Close Button */
@@ -63,6 +61,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: absolute;
+  right: 1.5rem;
+  top: 1.5rem;
 }
 
 .modal-close:focus {
@@ -83,8 +84,7 @@
 
 /* Modal Body */
 .modal-body {
-  padding: 1.5rem;
   overflow-y: auto;
   flex: 1;
-  color: var(--color-secondary);
+  /* color: var(--color-secondary); */
 }
