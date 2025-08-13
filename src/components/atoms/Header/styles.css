@@ -1,11 +1,10 @@
 /* Header component styles */
 .header {
-  background: var(--color-primary);
+  background: var(--color-primary-dark);
+  
   padding-top: 1rem;
   position: sticky;
   top: 0;
-
-  
 }
 
 .header__content {
@@ -28,14 +27,14 @@
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
-  color: var(--color-secondary);
+  color: var(--color-secondary-light);
   font-weight: 700;
   font-size: clamp(1.25rem, 3vw, 1.75rem);
   transition: color 0.2s ease;
 }
 
 .header__logo-link:hover {
-  color: var(--color-accent);
+  color: var(--color-secondary-dark);
 }
 
 .header__logo-icon {
@@ -54,7 +53,7 @@
 }
 
 .header__nav-link {
-  color: var(--color-secondary);
+  color: var(--color-secondary-light);
   text-decoration: none;
   font-weight: 400;
   font-size: 1rem;
@@ -62,5 +61,6 @@
 }
 
 .header__nav-link:hover {
-  color: var(--color-accent);
+  color: var(--color-secondary);
+  
 }

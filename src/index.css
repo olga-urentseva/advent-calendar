@@ -3,6 +3,7 @@
   /* Primary Colors - Brand Identity */
   --color-primary: oklch(0.98 0.01 85);
   --color-primary-light: oklch(0.95 0.02 85);
+  --color-primary-dark: oklch(0.74 0 none);
   
   /* Secondary Colors - Supporting Elements */
   --color-secondary: oklch(0.2 0.0593 257.49);

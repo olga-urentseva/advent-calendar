@@ -4,11 +4,13 @@ import { CreateCalendar } from './pages/CreateCalendar'
 import { ViewCalendar } from './pages/ViewCalendar'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Layout } from './components/Layout'
+import Snowflakes from './components/atoms/Snowflakes'
 
 function App() {
   return (
     <Router>
       <ErrorBoundary>
+        <Snowflakes />
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
