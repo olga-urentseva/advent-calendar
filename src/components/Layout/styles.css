@@ -1,0 +1,17 @@
+/* Layout component styles */
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.layout__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 0;
+  max-width: clamp(30rem, 90vw, 70rem);
+  width: 95%;
+  margin: 0 auto;
+  text-align: center;
+}

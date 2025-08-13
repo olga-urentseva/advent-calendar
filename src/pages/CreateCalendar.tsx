@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Calendar } from '../core/calendar'
 import type { DayContent } from '../types/calendar'
-import { Container } from '../components/atoms/Container'
+
 import { Title } from '../components/atoms/Title'
 import { Button } from '../components/atoms/Button'
 import { Modal } from '../components/atoms/Modal'
@@ -219,7 +219,7 @@ export function CreateCalendar() {
   const calendarData = calendarInstance.getCalendar()
 
   return (
-    <Container>
+    <>
       <Title>Create Calendar</Title>
       
       {error && (
@@ -321,7 +321,7 @@ export function CreateCalendar() {
         confirmText={confirmationAction === 'dayCount' ? 'Yes, Change Days' : 'Yes, Clear All'}
         cancelText="Cancel"
         variant="danger"
-      />
-    </Container>
+              />
+    </>
   )
 } 

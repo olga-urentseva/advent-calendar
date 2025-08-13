@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { ViewCalendarController, type ViewCalendarState } from '../../controllers/ViewCalendarController'
-import { Container } from '../../components/atoms/Container'
+
 import { Title } from '../../components/atoms/Title'
 import { Subtitle } from '../../components/atoms/Subtitle'
 import { Modal } from '../../components/atoms/Modal'
@@ -54,7 +54,7 @@ export function ViewCalendar() {
 
   if (!state.calendarData) {
     return (
-      <Container>
+      <>
         <Title>Open Calendar</Title>
         
         {state.error && (
@@ -70,12 +70,12 @@ export function ViewCalendar() {
           onDragLeave={controller.handleDragLeave.bind(controller)}
           onDrop={controller.handleDrop.bind(controller)}
         />
-      </Container>
+      </>
     )
   }
 
   return (
-    <Container>
+    <>
       <Title>{state.calendarData.title}</Title>
       <Subtitle>From: {state.calendarData.createdBy}</Subtitle>
       
@@ -108,6 +108,6 @@ export function ViewCalendar() {
       </Modal>
 
       <CreateOwnSection hasOpenedFirstDay={state.hasOpenedFirstDay} />
-    </Container>
+    </>
   )
 } 

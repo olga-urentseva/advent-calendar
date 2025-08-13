@@ -1,4 +1,3 @@
-import { Container } from '../components/atoms/Container'
 import { WelcomeSection } from '../components/organisms/WelcomeSection'
 import { ActionButtons } from '../components/organisms/ActionButtons'
 
@@ -9,9 +8,9 @@ export function Home() {
   ]
 
   return (
-    <Container>
+    <>
       <WelcomeSection />
       <ActionButtons buttons={actionButtons} />
-    </Container>
+    </>
   )
 } 

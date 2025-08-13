@@ -3,16 +3,19 @@ import { Home } from './pages/Home'
 import { CreateCalendar } from './pages/CreateCalendar'
 import { ViewCalendar } from './pages/ViewCalendar'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { Layout } from './components/Layout'
 
 function App() {
   return (
     <Router>
       <ErrorBoundary>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/create" element={<CreateCalendar />} />
-          <Route path="/view" element={<ViewCalendar />} />
-        </Routes>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/create" element={<CreateCalendar />} />
+            <Route path="/view" element={<ViewCalendar />} />
+          </Routes>
+        </Layout>
       </ErrorBoundary>
     </Router>
   )

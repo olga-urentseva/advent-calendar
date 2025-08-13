@@ -1,0 +1,40 @@
+/* Cloud component styles */
+.cloud {
+  width: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  margin-top: 0;
+}
+
+.cloud__svg {
+  width: 120%;
+  height: 100%;
+  display: block;
+  transform: scaleX(-1) scaleY(-1);
+  margin-left: -10%;
+}
+
+.cloud__path {
+  transition: all 0.3s ease-in-out;
+}
+
+.cloud__path--1 {
+  animation: cloudFloat 12s linear infinite;
+}
+
+.cloud__path--2 {
+  animation: cloudFloat 12s linear infinite 2s;
+}
+
+.cloud__path--3 {
+  animation: cloudFloat 12s linear infinite 3s;
+}
+
+@keyframes cloudFloat {
+  0%, 100% {
+    transform: translateX(0px);
+  }
+  50% {
+    transform: translateX(-2rem);
+  }
+}

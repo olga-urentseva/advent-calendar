@@ -1,0 +1,66 @@
+/* Header component styles */
+.header {
+  background: var(--color-primary);
+  padding-top: 1rem;
+  position: sticky;
+  top: 0;
+
+  
+}
+
+.header__content {
+  max-width: clamp(30rem, 90vw, 70rem);
+  width: 95%;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header__logo {
+  display: flex;
+  align-items: center;
+}
+
+.header__logo-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--color-secondary);
+  font-weight: 700;
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  transition: color 0.2s ease;
+}
+
+.header__logo-link:hover {
+  color: var(--color-accent);
+}
+
+.header__logo-icon {
+  font-size: 1.5em;
+}
+
+.header__logo-text {
+  font-weight: 700;
+}
+
+.header__nav {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  margin-left: 1rem;
+}
+
+.header__nav-link {
+  color: var(--color-secondary);
+  text-decoration: none;
+  font-weight: 400;
+  font-size: 1rem;
+  transition: color 0.2s ease;
+}
+
+.header__nav-link:hover {
+  color: var(--color-accent);
+}
