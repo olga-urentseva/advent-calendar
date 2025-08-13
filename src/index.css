@@ -25,14 +25,29 @@
   
   /* Semantic Colors - Status */
   --color-error: oklch(0.65 0.25 25);
+  --color-error-background: oklch(0.65 0.25 25 / 0.1);
+  --color-error-text: oklch(0.98 0.01 85);
+  --color-error-border: oklch(0.65 0.25 25 / 0.3);
+  
   --color-alert: oklch(0.72 0.1569 17.02);
   --color-backdrop: oklch(0.2 0.1053 271.51);
   --color-shadow: oklch(0 0 0 / 0.4);
   
   --color-success: oklch(0.75 0.18 150);
   --color-success-light: oklch(0.82 0.15 150);
+  --color-success-color: oklch(0.75 0.18 150 / 0.1);
 
   --color-disabled: oklch(0.62 0.019 267.69);
+  
+  /* Spacing System */
+  --spacing-small: 0.5rem;
+  --spacing-medium: 1rem;
+  --spacing-large: 2rem;
+  --spacing-xl: 3rem;
+  
+  /* Border Radius */
+  --border-radius: 0.75rem;
+  --border-radius-small: 0.375rem;
   
 }
 
@@ -54,18 +69,12 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   color: var(--color-text);
 }
 
 #root {
   width: 100%;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 

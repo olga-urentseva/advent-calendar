@@ -1,6 +1,19 @@
 import type { AdventCalendar, DayContent } from '../types/calendar'
 import { Storage } from './storage'
 
+// Configuration for calendar unlock timing
+const CALENDAR_CONFIG = {
+  DAYS_BEFORE_CHRISTMAS_FOR_FIRST_DAY: 7, // Day 1 can be opened 7 days before Christmas
+  CHRISTMAS_DAY: 25
+} as const
+
+export interface CountdownData {
+  days: number
+  hours: number
+  minutes: number
+  seconds: number
+}
+
 export class Calendar {
   private storage: Storage
   private calendar: AdventCalendar
@@ -149,5 +162,74 @@ export class Calendar {
     this.storage.clear()
     this.calendar = this.createEmptyCalendar()
     this.isImported = false
+  }
+
+  // Calendar unlock logic
+  isDayUnlocked(day: number, testMode: boolean = false): boolean {
+    if (testMode) return true
+
+    const today = new Date()
+    const currentYear = today.getFullYear()
+    const currentMonth = today.getMonth() + 1
+    const currentDay = today.getDate()
+    
+    // Day 1 can be opened N days before Christmas
+    const firstDayUnlockDate = new Date(currentYear, 11, CALENDAR_CONFIG.CHRISTMAS_DAY - CALENDAR_CONFIG.DAYS_BEFORE_CHRISTMAS_FOR_FIRST_DAY)
+    const canOpenFirstDay = today >= firstDayUnlockDate
+    
+    if (day === 1) {
+      return canOpenFirstDay
+    }
+    
+    // For other days, they unlock on their respective dates in December
+    if (currentMonth === 12) {
+      return day <= currentDay && canOpenFirstDay
+    }
+    
+    return false
+  }
+
+  getNextUnlockTime(): Date | null {
+    const today = new Date()
+    const currentYear = today.getFullYear()
+    const currentMonth = today.getMonth() + 1
+    const currentDay = today.getDate()
+    
+    // Calculate when Day 1 can first be opened
+    const firstDayUnlockDate = new Date(currentYear, 11, CALENDAR_CONFIG.CHRISTMAS_DAY - CALENDAR_CONFIG.DAYS_BEFORE_CHRISTMAS_FOR_FIRST_DAY)
+    
+    // If we haven't reached the first day unlock date yet, countdown to that
+    if (today < firstDayUnlockDate) {
+      return firstDayUnlockDate
+    }
+    
+    // If we're in December and can open the first day, countdown to the next day
+    if (currentMonth === 12) {
+      const nextDay = currentDay + 1
+      if (nextDay <= CALENDAR_CONFIG.CHRISTMAS_DAY) {
+        return new Date(currentYear, 11, nextDay)
+      }
+    }
+    
+    return null
+  }
+
+  calculateCountdown(testMode: boolean = false): CountdownData | null {
+    if (testMode) return null
+
+    const nextUnlockTime = this.getNextUnlockTime()
+    if (!nextUnlockTime) return null
+
+    const now = new Date()
+    const diff = nextUnlockTime.getTime() - now.getTime()
+
+    if (diff <= 0) return null
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+
+    return { days, hours, minutes, seconds }
   }
 }

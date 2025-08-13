@@ -2,6 +2,5 @@
 .subtitle {
   font-size: clamp(0.875rem, 3vw, 1.125rem);
   color: var(--color-text-light);
-  margin-bottom: 2rem;
   line-height: 1.5;
 }

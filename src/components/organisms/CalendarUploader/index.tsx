@@ -19,7 +19,6 @@ export function CalendarUploader({
   return (
     <div className="upload-section">
       <h3>Upload Your Advent Calendar</h3>
-      <p>Drag and drop your calendar file here or click to browse</p>
       
       <input
         type="file"
@@ -37,8 +36,8 @@ export function CalendarUploader({
       >
         <div className="upload-icon">📁</div>
         <div className="upload-text">
-          <strong>Choose a file</strong>
-          <span>or drag and drop</span>
+          <strong>Drag and drop your calendar file here</strong>
+          <span>or click to browse</span>
         </div>
       </label>
     </div>

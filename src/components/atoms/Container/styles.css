@@ -4,5 +4,9 @@
   padding: 2rem;
   max-width: clamp(30rem, 90vw, 70rem);
   width: 95%;
-  margin: 1rem;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }

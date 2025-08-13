@@ -3,7 +3,6 @@ import { Calendar } from '../core/calendar'
 import type { DayContent } from '../types/calendar'
 import { Container } from '../components/atoms/Container'
 import { Title } from '../components/atoms/Title'
-import { BackLink } from '../components/atoms/BackLink'
 import { Button } from '../components/atoms/Button'
 import { Modal } from '../components/atoms/Modal'
 import { ConfirmationModal } from '../components/atoms/ConfirmationModal'
@@ -12,6 +11,7 @@ import { DayCountSelector } from '../components/organisms/DayCountSelector'
 import { CalendarGrid } from '../components/organisms/CalendarGrid'
 import { ExportSection } from '../components/organisms/ExportSection'
 import { DayEditor } from '../components/organisms/DayEditor'
+import './CreateCalendar.css'
 
 // Create calendar instance once, outside the component
 const calendarInstance = new Calendar()
@@ -220,13 +220,8 @@ export function CreateCalendar() {
 
   return (
     <Container>
-      <div className="header">
-        <BackLink to="/">
-          ← Back
-        </BackLink>
-        <Title>Create Calendar</Title>
-      </div>
-
+      <Title>Create Calendar</Title>
+      
       {error && (
         <div className="error-message">
           {error}

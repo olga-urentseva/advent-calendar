@@ -1,0 +1,34 @@
+/* Page title styles */
+.title {
+  margin-top: var(--spacing-large);
+  margin-bottom: var(--spacing-medium);
+}
+
+.subtitle {
+  margin-bottom: var(--spacing-large);
+  color: var(--color-text-light);
+  font-size: 1rem;
+}
+
+.view-calendar-error {
+  background-color: var(--color-error-background);
+  color: var(--color-error-text);
+  padding: var(--spacing-medium);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-error-border);
+}
+
+.view-calendar-error[role="alert"] {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
