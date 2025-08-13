@@ -1,10 +1,7 @@
 /* Header component styles */
 .header {
   background: var(--color-primary-dark);
-  
   padding-top: 1rem;
-  position: sticky;
-  top: 0;
 }
 
 .header__content {

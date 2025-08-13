@@ -6,9 +6,9 @@ interface SubtitleProps {
   className?: string
 }
 
-export function Subtitle({ children, className = '' }: SubtitleProps) {
+export function Subtitle({ children}: SubtitleProps) {
   return (
-    <p className={`subtitle ${className}`}>
+    <p className="subtitle">
       {children}
     </p>
   )
