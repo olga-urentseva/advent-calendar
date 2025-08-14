@@ -4,6 +4,7 @@
   margin-top: auto;
   margin-bottom: 0;
   padding-top: 0;
+  position: relative;
 }
 
 .footer__content {
