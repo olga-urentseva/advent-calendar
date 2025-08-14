@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Header } from '../atoms/Header'
+import { Footer } from '../atoms/Footer'
 import './styles.css'
 
 interface LayoutProps {
@@ -14,6 +15,7 @@ export function Layout({ children}: LayoutProps) {
       <main className="layout__content">
         {children}
       </main>
+      <Footer />
     </div>
   )
 }

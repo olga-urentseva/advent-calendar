@@ -1,0 +1,15 @@
+/* Snow component styles */
+.snow {
+  width: 100%;
+  overflow: hidden;
+
+  display: block;
+}
+
+.snow__wave {
+  width: 100%;
+  height: 100%;
+  transform: rotate(0deg);
+  transition: 0.3s;
+  display: block;
+}

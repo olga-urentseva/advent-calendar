@@ -1,0 +1,22 @@
+/* Footer component styles */
+.footer {
+  background-color: var(--color-text);
+  margin-top: auto;
+  margin-bottom: 0;
+  padding-top: 0;
+}
+
+.footer__content {
+  max-width: clamp(30rem, 90vw, 70rem);
+  width: 95%;
+  margin: 0 auto;
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+.footer__copyright {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-inversion);
+}
+
