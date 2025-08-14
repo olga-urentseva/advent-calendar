@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react'
-import { Calendar } from '../core/calendar'
-import type { DayContent } from '../types/calendar'
+import { Calendar } from '../../core/calendar'
+import type { DayContent } from '../../types/calendar'
+import { Container } from '../../components/atoms/Container'
+import { Modal } from '../../components/atoms/Modal'
+import { ConfirmationModal } from '../../components/atoms/ConfirmationModal'
+import { CalendarForm } from '../../components/organisms/CalendarForm'
+import { DayCountSelector } from '../../components/organisms/DayCountSelector'
+import { CalendarGrid } from '../../components/organisms/CalendarGrid'
+import { ExportSection } from '../../components/organisms/ExportSection'
+import { DayEditor } from '../../components/organisms/DayEditor'
 
-import { Title } from '../components/atoms/Title'
-import { Button } from '../components/atoms/Button'
-import { Modal } from '../components/atoms/Modal'
-import { ConfirmationModal } from '../components/atoms/ConfirmationModal'
-import { CalendarForm } from '../components/organisms/CalendarForm'
-import { DayCountSelector } from '../components/organisms/DayCountSelector'
-import { CalendarGrid } from '../components/organisms/CalendarGrid'
-import { ExportSection } from '../components/organisms/ExportSection'
-import { DayEditor } from '../components/organisms/DayEditor'
-import './CreateCalendar.css'
+import './styles.css'
 
 // Create calendar instance once, outside the component
 const calendarInstance = new Calendar()
@@ -219,9 +218,7 @@ export function CreateCalendar() {
   const calendarData = calendarInstance.getCalendar()
 
   return (
-    <>
-      <Title>Create Calendar</Title>
-      
+    <Container>
       {error && (
         <div className="error-message">
           {error}
@@ -265,21 +262,8 @@ export function CreateCalendar() {
         isFullyCompleted={isFullyCompleted}
         onExport={handleExport}
         onDebugValidation={handleDebugValidation}
+        onClearData={handleClearAllData}
       />
-
-      <div className="clear-data-section">
-        <Button 
-          type="button" 
-          variant="secondary" 
-          onClick={handleClearAllData}
-          className="clear-all-btn"
-        >
-          🗑️ Clear All Data
-        </Button>
-        <small className="clear-warning">
-          This will remove all calendar data and reset to empty state
-        </small>
-      </div>
 
       <Modal
         isOpen={selectedDay !== null}
@@ -321,7 +305,7 @@ export function CreateCalendar() {
         confirmText={confirmationAction === 'dayCount' ? 'Yes, Change Days' : 'Yes, Clear All'}
         cancelText="Cancel"
         variant="danger"
-              />
-    </>
+      />
+    </Container>
   )
 } 

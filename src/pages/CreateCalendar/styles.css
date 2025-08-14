@@ -17,6 +17,24 @@
   animation: fadeIn 0.3s ease-in-out;
 }
 
+.clear-data-section {
+  display: flex;
+  flex-direction: column;
+  
+  margin-top: var(--spacing-large);
+}
+
+.clear-all-btn {
+  color: var(--color-accent-light);
+  font-weight: 400;
+  font-size: 1rem;
+
+  &:focus, 
+  &:hover, &:active {
+    color: var(--color-accent-dark);
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
