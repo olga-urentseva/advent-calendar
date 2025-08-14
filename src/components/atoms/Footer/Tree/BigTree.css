@@ -1,0 +1,46 @@
+/* Big Tree component styles */
+.big-tree {
+  width: 9rem;
+  height: 6rem;
+  position: relative;
+}
+
+.big-tree__section {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 2.25rem solid transparent;
+  border-right: 2.25rem solid transparent;
+  border-bottom: 3rem solid oklch(0.43 0.1 142.25);
+  border-radius: 0.75rem;
+}
+
+.big-tree__section--top {
+  top: -5.625rem;
+  border-left: 1.5rem solid transparent;
+  border-right: 1.5rem solid transparent;
+  border-radius: 0.525rem;
+}
+
+.big-tree__section--upper {
+  top: -3.75rem;
+  border-left: 2.25rem solid transparent;
+  border-right: 2.25rem solid transparent;
+  border-radius: 1.125rem;
+}
+
+.big-tree__section--middle {
+  top: -1.875rem;
+  border-left: 3rem solid transparent;
+  border-right: 3rem solid transparent;
+  border-radius: 1.125rem;
+}
+
+.big-tree__section--lower {
+  top: 0;
+  border-left: 3.75rem solid transparent;
+  border-right: 3.75rem solid transparent;
+  border-radius: 1.125rem;
+}

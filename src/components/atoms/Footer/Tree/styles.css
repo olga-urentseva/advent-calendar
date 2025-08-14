@@ -1,11 +1,8 @@
 /* Tree component styles */
 .tree {
-  position: absolute;
-  bottom: 0;
-  right: 2rem;
   width: 6rem;
-  top: -2rem
-  
+  height: 4rem;
+  position: relative;
 }
 
 .tree__section {

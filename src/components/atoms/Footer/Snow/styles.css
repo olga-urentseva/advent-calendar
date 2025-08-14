@@ -2,7 +2,7 @@
 .snow {
   width: 100%;
   overflow: hidden;
-
+  margin-top: 3rem;
   display: block;
 }
 

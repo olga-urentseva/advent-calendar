@@ -1,4 +1,6 @@
 import './styles.css'
+import { SmallTree } from './SmallTree'
+import { BigTree } from './BigTree'
 
 export function Tree() {
   return (
@@ -7,7 +9,8 @@ export function Tree() {
       <div className="tree__section tree__section--upper"></div>
       <div className="tree__section tree__section--middle"></div>
       <div className="tree__section tree__section--lower"></div>
-      
     </div>
   )
 }
+
+export { SmallTree, BigTree }
