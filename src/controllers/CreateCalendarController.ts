@@ -36,6 +36,11 @@ export class CreateCalendarController {
       confirmationAction: null
     }
     this.setState = setState
+    this.initializeController()
+  }
+
+  private async initializeController(): Promise<void> {
+    await this.calendar.initialize()
     this.loadExistingData()
   }
 
@@ -49,14 +54,22 @@ export class CreateCalendarController {
     })
   }
 
-  setCreatedBy(createdBy: string): void {
-    this.calendar.setCreatedBy(createdBy)
-    this.updateState({ createdBy })
+  async setCreatedBy(createdBy: string): Promise<void> {
+    try {
+      await this.calendar.setCreatedBy(createdBy)
+      this.updateState({ createdBy })
+    } catch (error) {
+      this.updateState({ error: 'Failed to save calendar data' })
+    }
   }
 
-  setTo(to: string): void {
-    this.calendar.setTo(to)
-    this.updateState({ to })
+  async setTo(to: string): Promise<void> {
+    try {
+      await this.calendar.setTo(to)
+      this.updateState({ to })
+    } catch (error) {
+      this.updateState({ error: 'Failed to save calendar data' })
+    }
   }
 
   handleDayClick(day: number): void {
@@ -93,17 +106,21 @@ export class CreateCalendarController {
     this.applyDayCountChange(count)
   }
 
-  private applyDayCountChange(count: number): void {
-    this.calendar.setDayCount(count)
-    this.updateState({
-      dayCount: count,
-      isFullyCompleted: this.calendar.isFullyCompleted()
-    })
+  private async applyDayCountChange(count: number): Promise<void> {
+    try {
+      await this.calendar.setDayCount(count)
+      this.updateState({
+        dayCount: count,
+        isFullyCompleted: this.calendar.isFullyCompleted()
+      })
+    } catch (error) {
+      this.updateState({ error: 'Failed to save calendar data' })
+    }
   }
 
-  confirmDayCountChange(): void {
+  async confirmDayCountChange(): Promise<void> {
     if (this.state.pendingDayCount !== null) {
-      this.applyDayCountChange(this.state.pendingDayCount)
+      await this.applyDayCountChange(this.state.pendingDayCount)
     }
     this.closeConfirmation()
   }
@@ -116,10 +133,14 @@ export class CreateCalendarController {
     })
   }
 
-  confirmClearAllData(): void {
-    this.calendar.clearStorage()
-    this.loadExistingData()
-    this.closeConfirmation()
+  async confirmClearAllData(): Promise<void> {
+    try {
+      await this.calendar.clearStorage()
+      this.loadExistingData()
+      this.closeConfirmation()
+    } catch (error) {
+      this.updateState({ error: 'Failed to clear calendar data' })
+    }
   }
 
   closeConfirmation(): void {
@@ -163,9 +184,13 @@ export class CreateCalendarController {
     return this.calendar.getDay(day)
   }
 
-  setDayContent(day: number, content: DayContent): void {
-    this.calendar.setDayContent(day, content)
-    this.updateState({ isFullyCompleted: this.calendar.isFullyCompleted() })
+  async setDayContent(day: number, content: DayContent): Promise<void> {
+    try {
+      await this.calendar.setDayContent(day, content)
+      this.updateState({ isFullyCompleted: this.calendar.isFullyCompleted() })
+    } catch (error) {
+      this.updateState({ error: 'Failed to save day content' })
+    }
   }
 
   getCompletedDays(): number {

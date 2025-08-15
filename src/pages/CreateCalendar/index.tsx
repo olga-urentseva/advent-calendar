@@ -27,31 +27,36 @@ export function CreateCalendar() {
   const [pendingDayCount, setPendingDayCount] = useState<number | null>(null)
   const [confirmationMessage, setConfirmationMessage] = useState('')
   const [confirmationAction, setConfirmationAction] = useState<'dayCount' | 'clearData' | null>(null)
+  const [isLoaded, setIsLoaded] = useState(false)
 
   // Load existing data from calendar on component mount
   useEffect(() => {
-    const calendarData = calendarInstance.getCalendar()
-    setCreatedBy(calendarData.createdBy)
-    setTo(calendarData.to)
-    setDayCount(calendarData.days.length)
-    
-    // Ensure calendar metadata is set from loaded data
-    if (calendarData.createdBy) {
-      calendarInstance.setCreatedBy(calendarData.createdBy)
+    const initializeCalendar = async () => {
+      try {
+        await calendarInstance.initialize()
+        const calendarData = calendarInstance.getCalendar()
+        setCreatedBy(calendarData.createdBy)
+        setTo(calendarData.to)
+        setDayCount(calendarData.days.length)
+        
+        const fullyCompleted = calendarInstance.isFullyCompleted()
+        console.log('On page load:', {
+          createdBy: calendarData.createdBy,
+          to: calendarData.to,
+          completedDays: calendarInstance.getCompletedDays(),
+          totalDays: calendarInstance.getDayCount(),
+          fullyCompleted
+        })
+        setIsFullyCompleted(fullyCompleted)
+        setIsLoaded(true)
+      } catch (error) {
+        console.error('Failed to initialize calendar:', error)
+        setError('Failed to load calendar data')
+        setIsLoaded(true)
+      }
     }
-    if (calendarData.to) {
-      calendarInstance.setTo(calendarData.to)
-    }
     
-    const fullyCompleted = calendarInstance.isFullyCompleted()
-    console.log('On page load:', {
-      createdBy: calendarData.createdBy,
-      to: calendarData.to,
-      completedDays: calendarInstance.getCompletedDays(),
-      totalDays: calendarInstance.getDayCount(),
-      fullyCompleted
-    })
-    setIsFullyCompleted(fullyCompleted)
+    initializeCalendar()
   }, [])
 
   const handleDayClick = (day: number) => {
@@ -83,10 +88,11 @@ export function CreateCalendar() {
     applyDayCountChange(count, daysWithContent, daysToBePreserved, daysToBeLost)
   }
 
-  const applyDayCountChange = (count: number, daysWithContent: number[], daysToBePreserved: number[], daysToBeLost: number[]) => {
-    setDayCount(count)
-    // Update the calendar with new day count (content will be preserved)
-    calendarInstance.setDayCount(count)
+  const applyDayCountChange = async (count: number, daysWithContent: number[], daysToBePreserved: number[], daysToBeLost: number[]) => {
+    try {
+      setDayCount(count)
+      // Update the calendar with new day count (content will be preserved)
+      await calendarInstance.setDayCount(count)
     
     // Show notification about content preservation/loss
     if (daysWithContent.length > 0) {
@@ -129,9 +135,12 @@ export function CreateCalendar() {
         }
       }, 4000)
     }
+    } catch (error) {
+      setError('Failed to save day count change')
+    }
   }
 
-  const handleConfirmDayCountChange = () => {
+  const handleConfirmDayCountChange = async () => {
     if (pendingDayCount !== null) {
       const calendarData = calendarInstance.getCalendar()
       const daysWithContent = calendarData.days
@@ -141,14 +150,14 @@ export function CreateCalendar() {
       const daysToBeLost = daysWithContent.filter(day => day > pendingDayCount)
       const daysToBePreserved = daysWithContent.filter(day => day <= pendingDayCount)
       
-      applyDayCountChange(pendingDayCount, daysWithContent, daysToBePreserved, daysToBeLost)
+      await applyDayCountChange(pendingDayCount, daysWithContent, daysToBePreserved, daysToBeLost)
       setPendingDayCount(null)
     }
   }
 
   const handleSaveDay = async (day: number, dayContent: DayContent) => {
     try {
-      calendarInstance.setDayContent(day, dayContent)
+      await calendarInstance.setDayContent(day, dayContent)
       setSelectedDay(null)
       setError('')
       // Check if calendar is now fully completed
@@ -173,8 +182,8 @@ export function CreateCalendar() {
       setError('')
       
       // Set metadata before export
-      calendarInstance.setCreatedBy(createdBy)
-      calendarInstance.setTo(to)
+      await calendarInstance.setCreatedBy(createdBy)
+      await calendarInstance.setTo(to)
       
       const calendarData = calendarInstance.exportCalendar()
       
@@ -191,17 +200,21 @@ export function CreateCalendar() {
     }
   }
 
-  const handleDebugValidation = () => {
-    calendarInstance.setCreatedBy(createdBy)
-    calendarInstance.setTo(to)
-    console.log('Debug Info:', {
-      createdBy,
-      to,
-      completedDays: calendarInstance.getCompletedDays(),
-      totalDays: calendarInstance.getDayCount(),
-      isValid: calendarInstance.isValid(),
-      isFullyCompleted: calendarInstance.isFullyCompleted()
-    })
+  const handleDebugValidation = async () => {
+    try {
+      await calendarInstance.setCreatedBy(createdBy)
+      await calendarInstance.setTo(to)
+      console.log('Debug Info:', {
+        createdBy,
+        to,
+        completedDays: calendarInstance.getCompletedDays(),
+        totalDays: calendarInstance.getDayCount(),
+        isValid: calendarInstance.isValid(),
+        isFullyCompleted: calendarInstance.isFullyCompleted()
+      })
+    } catch (error) {
+      console.error('Debug validation failed:', error)
+    }
   }
 
   const handleClearAllData = () => {
@@ -217,6 +230,16 @@ export function CreateCalendar() {
 
   const calendarData = calendarInstance.getCalendar()
 
+  if (!isLoaded) {
+    return (
+      <Container>
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          Loading calendar data...
+        </div>
+      </Container>
+    )
+  }
+
   return (
     <Container>
       {error && (
@@ -228,15 +251,23 @@ export function CreateCalendar() {
       <CalendarForm
         createdBy={createdBy}
         to={to}
-        onCreatedByChange={(value) => {
+        onCreatedByChange={async (value) => {
           setCreatedBy(value)
-          calendarInstance.setCreatedBy(value)
-          setIsFullyCompleted(calendarInstance.isFullyCompleted())
+          try {
+            await calendarInstance.setCreatedBy(value)
+            setIsFullyCompleted(calendarInstance.isFullyCompleted())
+          } catch (error) {
+            setError('Failed to save created by field')
+          }
         }}
-        onToChange={(value) => {
+        onToChange={async (value) => {
           setTo(value)
-          calendarInstance.setTo(value)
-          setIsFullyCompleted(calendarInstance.isFullyCompleted())
+          try {
+            await calendarInstance.setTo(value)
+            setIsFullyCompleted(calendarInstance.isFullyCompleted())
+          } catch (error) {
+            setError('Failed to save to field')
+          }
         }}
       />
 
@@ -287,17 +318,21 @@ export function CreateCalendar() {
           setPendingDayCount(null)
           setConfirmationAction(null)
         }}
-        onConfirm={() => {
+        onConfirm={async () => {
           if (confirmationAction === 'dayCount') {
-            handleConfirmDayCountChange()
+            await handleConfirmDayCountChange()
           } else if (confirmationAction === 'clearData') {
-            calendarInstance.clearStorage()
-            setCreatedBy('')
-            setTo('')
-            setDayCount(25)
-            setError('')
-            setShowConfirmation(false)
-            setConfirmationAction(null)
+            try {
+              await calendarInstance.clearStorage()
+              setCreatedBy('')
+              setTo('')
+              setDayCount(25)
+              setError('')
+              setShowConfirmation(false)
+              setConfirmationAction(null)
+            } catch (error) {
+              setError('Failed to clear calendar data')
+            }
           }
         }}
         title={confirmationAction === 'dayCount' ? 'Confirm Day Count Change' : 'Confirm Clear Data'}
@@ -306,6 +341,7 @@ export function CreateCalendar() {
         cancelText="Cancel"
         variant="danger"
       />
+
     </Container>
   )
 } 

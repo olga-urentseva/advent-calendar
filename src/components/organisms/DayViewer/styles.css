@@ -33,3 +33,18 @@
   width: 100%;
   min-height: clamp(15rem, 40vh, 18.75rem);
 }
+
+.content-description {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--color-background);
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-accent);
+}
+
+.content-description p {
+  margin: 0;
+  color: var(--color-text);
+  line-height: 1.5;
+  font-size: 0.95rem;
+}

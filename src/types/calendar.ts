@@ -6,6 +6,7 @@ export interface DayContent {
   type: ContentType
   source: MediaSource
   content: string // text content, base64, or URL
+  description?: string // text description for media files
   title?: string
   fileSize?: number
   originalFileName?: string

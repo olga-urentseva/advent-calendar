@@ -18,11 +18,15 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
   const [contentType, setContentType] = useState<ContentType>(dayContent?.type || 'text')
   const [mediaSource, setMediaSource] = useState<MediaSource>(dayContent?.source || 'upload')
   const [content, setContent] = useState(dayContent?.content || '')
+  const [description, setDescription] = useState(dayContent?.description || '')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Character limits
+  const MAX_DESCRIPTION_CHARS = 500
 
   // Initialize from existing content
   useEffect(() => {
@@ -30,6 +34,7 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
       setContentType(dayContent.type)
       setMediaSource(dayContent.source)
       setContent(dayContent.content || '')
+      setDescription(dayContent.description || '')
       
       // If there's existing content and it's a base64 file, create preview URL
       if (dayContent.content && dayContent.content.startsWith('data:')) {
@@ -40,6 +45,7 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
       setContentType('text')
       setMediaSource('upload')
       setContent('')
+      setDescription('')
       setSelectedFile(null)
       cleanupPreviewUrl()
     }
@@ -131,6 +137,7 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
         type: contentType,
         source: finalSource,
         content: finalContent,
+        description: contentType !== 'text' ? description.trim() : undefined,
         title: `Day ${day}`,
         fileSize: selectedFile?.size,
         originalFileName: selectedFile?.name
@@ -151,6 +158,7 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
     setMediaSource('upload')
     // Clear content when switching types
     setContent('')
+    setDescription('')
     setSelectedFile(null)
     cleanupPreviewUrl()
   }
@@ -159,12 +167,20 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
     setMediaSource(newSource)
     // Clear content when switching sources
     setContent('')
+    setDescription('')
     setSelectedFile(null)
     cleanupPreviewUrl()
   }
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     setContent(e.target.value)
+  }
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value
+    if (value.length <= MAX_DESCRIPTION_CHARS) {
+      setDescription(value)
+    }
   }
 
   const handleReplaceFile = () => {
@@ -177,6 +193,7 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
     setSelectedFile(null)
     cleanupPreviewUrl()
     setContent('')
+    setDescription('')
   }
 
   // Cleanup on unmount
@@ -186,11 +203,10 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
     }
   }, [])
 
-  // Render preview content
+  // Render preview content (only for media, not text)
   const renderPreview = () => {
-    // Show preview if there's any content
+    // Only show preview for media content, not text
     const shouldShowPreview = 
-      (contentType === 'text' && content.trim().length > 0) ||
       (contentType !== 'text' && mediaSource === 'upload' && selectedFile) ||
       (contentType !== 'text' && mediaSource === 'upload' && content && content.startsWith('data:')) ||
       (contentType !== 'text' && mediaSource === 'url' && content.trim().length > 0)
@@ -201,12 +217,6 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
       <div className="preview-mode">
         <div className="content-preview">
           <h4>Preview</h4>
-          
-          {contentType === 'text' && (
-            <div className="text-preview">
-              <p>{content}</p>
-            </div>
-          )}
           
           {contentType === 'image' && (
             <div className="image-preview">
@@ -406,6 +416,9 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
                   >
                     📁 Choose {contentType === 'image' ? 'Image' : 'Video'} File
                   </button>
+                  <div className="file-size-notice">
+                    {contentType === 'image' ? 'Max file size: 15MB. Images over 5MB are automatically compressed.' : 'Max file size: 15MB'}
+                  </div>
                   {selectedFile && (
                     <div className="file-info">
                       Selected: {selectedFile.name}
@@ -428,6 +441,29 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
             </div>
           )}
         </FormGroup>
+
+        {/* Description Section for Media Files */}
+        {contentType !== 'text' && (
+          <FormGroup>
+            <Label htmlFor={`day-${day}-description`} className='label'>
+              Message (Optional)
+            </Label>
+            <Textarea
+              id={`day-${day}-description`}
+              name="description"
+              value={description}
+              onChange={handleDescriptionChange}
+              placeholder="Add a message..."
+              rows={3}
+            />
+            <div className={`character-count ${
+              description.length > MAX_DESCRIPTION_CHARS * 0.9 ? 'danger' : 
+              description.length > MAX_DESCRIPTION_CHARS * 0.75 ? 'warning' : ''
+            }`}>
+              {description.length}/{MAX_DESCRIPTION_CHARS} characters
+            </div>
+          </FormGroup>
+        )}
 
         {/* Preview Section */}
         {renderPreview()}

@@ -18,10 +18,27 @@ export class Calendar {
   private storage: Storage
   private calendar: AdventCalendar
   private isImported: boolean = false
+  private initialized: boolean = false
 
   constructor() {
     this.storage = new Storage()
-    this.calendar = this.storage.load() || this.createEmptyCalendar()
+    this.calendar = this.createEmptyCalendar()
+  }
+
+  // Initialize calendar data from storage
+  async initialize(): Promise<void> {
+    if (this.initialized) return
+    
+    try {
+      const loaded = await this.storage.load()
+      if (loaded) {
+        this.calendar = loaded
+      }
+    } catch (error) {
+      console.warn('Failed to load calendar from storage:', error)
+    }
+    
+    this.initialized = true
   }
 
   private createEmptyCalendar(): AdventCalendar {
@@ -57,22 +74,32 @@ export class Calendar {
     return this.calendar.days.find(d => d.day === day) || null
   }
 
-  setDayContent(day: number, content: DayContent): void {
+  async setDayContent(day: number, content: DayContent): Promise<void> {
     const dayIndex = this.calendar.days.findIndex(d => d.day === day)
     if (dayIndex !== -1) {
       this.calendar.days[dayIndex] = { ...content, day }
       if (!this.isImported) {
-        this.storage.save(this.calendar)
+        try {
+          await this.storage.save(this.calendar)
+        } catch (error) {
+          console.error('Failed to save calendar:', error)
+          throw new Error('Failed to save calendar data')
+        }
       }
     }
   }
 
   // Metadata methods
 
-  setCreatedBy(createdBy: string): void {
+  async setCreatedBy(createdBy: string): Promise<void> {
     this.calendar.createdBy = createdBy
     if (!this.isImported) {
-      this.storage.save(this.calendar)
+      try {
+        await this.storage.save(this.calendar)
+      } catch (error) {
+        console.error('Failed to save calendar:', error)
+        throw new Error('Failed to save calendar data')
+      }
     }
   }
 
@@ -80,10 +107,15 @@ export class Calendar {
     return this.calendar.createdBy
   }
 
-  setTo(to: string): void {
+  async setTo(to: string): Promise<void> {
     this.calendar.to = to
     if (!this.isImported) {
-      this.storage.save(this.calendar)
+      try {
+        await this.storage.save(this.calendar)
+      } catch (error) {
+        console.error('Failed to save calendar:', error)
+        throw new Error('Failed to save calendar data')
+      }
     }
   }
 
@@ -92,7 +124,7 @@ export class Calendar {
   }
 
   // Day count methods
-  setDayCount(count: number): void {
+  async setDayCount(count: number): Promise<void> {
     const currentDays = this.calendar.days
     const newDays: DayContent[] = []
     
@@ -117,7 +149,12 @@ export class Calendar {
     
     this.calendar.days = newDays
     if (!this.isImported) {
-      this.storage.save(this.calendar)
+      try {
+        await this.storage.save(this.calendar)
+      } catch (error) {
+        console.error('Failed to save calendar:', error)
+        throw new Error('Failed to save calendar data')
+      }
     }
   }
 
@@ -158,10 +195,20 @@ export class Calendar {
   }
 
   // Storage
-  clearStorage(): void {
-    this.storage.clear()
-    this.calendar = this.createEmptyCalendar()
-    this.isImported = false
+  async clearStorage(): Promise<void> {
+    try {
+      await this.storage.clear()
+      this.calendar = this.createEmptyCalendar()
+      this.isImported = false
+    } catch (error) {
+      console.error('Failed to clear storage:', error)
+      throw new Error('Failed to clear calendar data')
+    }
+  }
+
+  // Check if there's stored data
+  async hasStoredData(): Promise<boolean> {
+    return await this.storage.hasData()
   }
 
   // Calendar unlock logic

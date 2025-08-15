@@ -14,6 +14,31 @@
   color: var(--color-text-inversion);
 }
 
+/* Character count display */
+.character-count {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-align: right;
+  margin-top: 0.25rem;
+}
+
+.character-count.warning {
+  color: #ff6b6b;
+}
+
+.character-count.danger {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+/* File size notice */
+.file-size-notice {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
 
 /* Content type buttons */
 .content-type-buttons {

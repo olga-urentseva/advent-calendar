@@ -24,6 +24,11 @@ export function DayViewer({ day }: DayViewerProps) {
               alt={day.title || `Day ${day.day}`}
               className="content-image"
             />
+            {day.description && (
+              <div className="content-description">
+                <p>{day.description}</p>
+              </div>
+            )}
           </div>
         )
       
@@ -41,6 +46,11 @@ export function DayViewer({ day }: DayViewerProps) {
                   allowFullScreen
                   className="content-video"
                 />
+                {day.description && (
+                  <div className="content-description">
+                    <p>{day.description}</p>
+                  </div>
+                )}
               </div>
             )
           }
@@ -54,6 +64,11 @@ export function DayViewer({ day }: DayViewerProps) {
             >
               Your browser does not support the video tag.
             </video>
+            {day.description && (
+              <div className="content-description">
+                <p>{day.description}</p>
+              </div>
+            )}
           </div>
         )
       

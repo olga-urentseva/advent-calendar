@@ -17,8 +17,8 @@ export class FileService {
     })
   }
 
-  // Compress image
-  private async compressImage(file: File, maxSize = 10 * 1024 * 1024): Promise<File> {
+  // Compress image if needed
+  private async compressImage(file: File, maxSize = 50 * 1024 * 1024): Promise<File> {
     if (file.size <= maxSize) return file
 
     return new Promise((resolve) => {
@@ -27,11 +27,15 @@ export class FileService {
       const img = new Image()
 
       img.onload = () => {
+        // Calculate compression ratio based on file size
         const ratio = Math.min(1, Math.sqrt(maxSize / file.size))
         canvas.width = img.width * ratio
         canvas.height = img.height * ratio
 
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+        // Use progressive quality reduction for very large files
+        const quality = file.size > 25 * 1024 * 1024 ? 0.6 : 0.8
 
         canvas.toBlob((blob) => {
           if (blob) {
@@ -40,56 +44,55 @@ export class FileService {
           } else {
             resolve(file)
           }
-        }, 'image/jpeg', 0.8)
+        }, 'image/jpeg', quality)
       }
       img.src = URL.createObjectURL(file)
     })
   }
 
-  // Process media file
+  // Process media file - optimized for 25-cell storage
   async processMediaFile(file: File, type: ContentType): Promise<DayContent | null> {
-    const maxSize = 10 * 1024 * 1024 // 10MB
+    // Optimized file size limits for 25 cells with text descriptions
+    const maxFileSize = 15 * 1024 * 1024 // 15MB max per file
 
     // Validate that file is a proper File object
     if (!(file instanceof File)) {
       throw new Error('Invalid file object provided')
     }
 
-    if (file.size > maxSize) {
-      if (type === 'image') {
-        try {
-          const compressedFile = await this.compressImage(file)
-          const base64 = await this.fileToBase64(compressedFile)
-          return {
-            day: 0,
-            type,
-            source: 'upload' as MediaSource,
-            content: base64,
-            fileSize: compressedFile.size,
-            originalFileName: file.name,
-            compressed: true
-          }
-        } catch (error) {
-          throw new Error(`Failed to process image file: ${error instanceof Error ? error.message : 'Unknown error'}`)
-        }
-      } else {
-        throw new Error('Video file is too large. Please choose a file under 10MB.')
+    // Check file size limit
+    if (file.size > maxFileSize) {
+      throw new Error(`File is too large. Maximum size is 15MB per ${type}. Please compress your file or use a URL instead.`)
+    }
+
+    let processedFile = file
+    let wasCompressed = false
+
+    // Apply compression for images over 5MB
+    if (type === 'image' && file.size > 5 * 1024 * 1024) {
+      try {
+        processedFile = await this.compressImage(file, 15 * 1024 * 1024)
+        wasCompressed = true
+        console.log(`Image compressed from ${Math.round(file.size / (1024 * 1024))}MB to ${Math.round(processedFile.size / (1024 * 1024))}MB`)
+      } catch (error) {
+        console.warn('Image compression failed, using original file:', error)
+        processedFile = file
       }
     }
 
     try {
-      const base64 = await this.fileToBase64(file)
+      const base64 = await this.fileToBase64(processedFile)
       return {
         day: 0,
         type,
         source: 'upload' as MediaSource,
         content: base64,
-        fileSize: file.size,
+        fileSize: processedFile.size,
         originalFileName: file.name,
-        compressed: false
+        compressed: wasCompressed
       }
     } catch (error) {
-      throw new Error(`Failed to process file: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(`Failed to process ${type} file: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 

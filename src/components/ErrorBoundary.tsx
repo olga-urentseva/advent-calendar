@@ -1,4 +1,4 @@
-import { Component, type ReactNode } from 'react'
+import { Component, type ReactNode, type ErrorInfo } from 'react'
 import { Container } from './atoms/Container'
 import { ErrorDisplay } from './organisms/ErrorDisplay'
 import { ErrorActions } from './organisms/ErrorActions'
