@@ -1,0 +1,55 @@
+/* File Access Modal styles */
+.file-access-modal {
+  text-align: center;
+  padding: 1rem;
+}
+
+.file-access-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.file-access-message h3 {
+  color: var(--color-text);
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+}
+
+.file-access-message p {
+  color: var(--color-text-muted);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.file-access-benefits {
+  background-color: var(--color-accent-light);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  text-align: left;
+}
+
+.file-access-benefits h4 {
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.file-access-benefits ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.file-access-benefits li {
+  color: var(--color-text-muted);
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}

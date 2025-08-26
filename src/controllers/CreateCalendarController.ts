@@ -160,7 +160,7 @@ export class CreateCalendarController {
         throw new Error('Calendar is not complete. Please fill in all required fields.')
       }
       
-      const calendarData = this.calendar.exportCalendar()
+      const calendarData = this.calendar.getCalendarJSON()
       const blob = new Blob([calendarData], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')

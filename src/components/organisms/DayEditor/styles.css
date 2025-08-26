@@ -39,6 +39,17 @@
   font-style: italic;
 }
 
+/* File error message */
+.file-error {
+  font-size: 0.875rem;
+  color: #e74c3c;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: rgba(231, 76, 60, 0.1);
+  border-radius: 0.25rem;
+  border-left: 3px solid #e74c3c;
+}
+
 
 /* Content type buttons */
 .content-type-buttons {
@@ -81,6 +92,7 @@
 
 /* Media options */
 .media-options {
+  width: 100%;
   
 }
 
@@ -176,7 +188,7 @@
 .file-upload-btn {
   display: inline-block;
   padding: 0.5rem 1rem;
-  background: var(--color-accent);
+  background: oklch(78.173% 0.13611 153.246);
   color: var(--color-text);
   border-radius: 0.5rem;
   cursor: pointer;

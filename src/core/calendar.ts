@@ -1,5 +1,5 @@
 import type { AdventCalendar, DayContent } from '../types/calendar'
-import { Storage } from './storage'
+import { FileSystemService } from '../services/FileSystemService'
 
 // Configuration for calendar unlock timing
 const CALENDAR_CONFIG = {
@@ -15,31 +15,37 @@ export interface CountdownData {
 }
 
 export class Calendar {
-  private storage: Storage
+  private fileSystem: FileSystemService
   private calendar: AdventCalendar
-  private isImported: boolean = false
   private initialized: boolean = false
 
   constructor() {
-    this.storage = new Storage()
+    this.fileSystem = new FileSystemService()
     this.calendar = this.createEmptyCalendar()
   }
 
-  // Initialize calendar data from storage
+  // Initialize calendar data from file system
   async initialize(): Promise<void> {
     if (this.initialized) return
     
+    console.log('🚀 Initializing calendar...')
     try {
-      const loaded = await this.storage.load()
+      const loaded = await this.fileSystem.loadCalendar()
       if (loaded) {
+        console.log('📂 Loaded calendar from file:', loaded.title, 'Days:', loaded.days.length)
         this.calendar = loaded
+      } else {
+        console.log('📭 No calendar file found, using empty calendar')
       }
     } catch (error) {
-      console.warn('Failed to load calendar from storage:', error)
+      console.warn('❌ Failed to load calendar from file system:', error)
     }
     
     this.initialized = true
+    console.log('✅ Calendar initialization complete')
   }
+
+
 
   private createEmptyCalendar(): AdventCalendar {
     return {
@@ -75,17 +81,12 @@ export class Calendar {
   }
 
   async setDayContent(day: number, content: DayContent): Promise<void> {
+    console.log('📝 setDayContent called for day:', day, 'content type:', content.type)
     const dayIndex = this.calendar.days.findIndex(d => d.day === day)
     if (dayIndex !== -1) {
       this.calendar.days[dayIndex] = { ...content, day }
-      if (!this.isImported) {
-        try {
-          await this.storage.save(this.calendar)
-        } catch (error) {
-          console.error('Failed to save calendar:', error)
-          throw new Error('Failed to save calendar data')
-        }
-      }
+      console.log('✅ Updated calendar data in memory for day', day)
+      // Note: Not saving to file automatically - only when user explicitly saves
     }
   }
 
@@ -93,14 +94,12 @@ export class Calendar {
 
   async setCreatedBy(createdBy: string): Promise<void> {
     this.calendar.createdBy = createdBy
-    if (!this.isImported) {
-      try {
-        await this.storage.save(this.calendar)
-      } catch (error) {
-        console.error('Failed to save calendar:', error)
-        throw new Error('Failed to save calendar data')
-      }
+    // Set title if empty
+    if (!this.calendar.title) {
+      this.calendar.title = `${createdBy}'s Advent Calendar`
     }
+    console.log('📝 Updated createdBy in memory:', createdBy)
+    // Note: Not saving to file automatically - only when user explicitly saves
   }
 
   getCreatedBy(): string {
@@ -109,14 +108,8 @@ export class Calendar {
 
   async setTo(to: string): Promise<void> {
     this.calendar.to = to
-    if (!this.isImported) {
-      try {
-        await this.storage.save(this.calendar)
-      } catch (error) {
-        console.error('Failed to save calendar:', error)
-        throw new Error('Failed to save calendar data')
-      }
-    }
+    console.log('📝 Updated to in memory:', to)
+    // Note: Not saving to file automatically - only when user explicitly saves
   }
 
   getTo(): string {
@@ -148,14 +141,8 @@ export class Calendar {
     }
     
     this.calendar.days = newDays
-    if (!this.isImported) {
-      try {
-        await this.storage.save(this.calendar)
-      } catch (error) {
-        console.error('Failed to save calendar:', error)
-        throw new Error('Failed to save calendar data')
-      }
-    }
+    console.log('📝 Updated day count in memory:', count)
+    // Note: Not saving to file automatically - only when user explicitly saves
   }
 
   getDayCount(): number {
@@ -179,36 +166,74 @@ export class Calendar {
            this.getCompletedDays() === this.getDayCount()
   }
 
-  // Import/Export
-  importCalendar(data: string): void {
+  // Import calendar data and save to OPFS
+  async importCalendar(calendarData: AdventCalendar): Promise<void> {
     try {
-      const imported = JSON.parse(data) as AdventCalendar
+      const imported = await this.fileSystem.importCalendar(calendarData)
       this.calendar = imported
-      this.isImported = true
-    } catch {
-      throw new Error('Invalid calendar data format')
+    } catch (error) {
+      throw new Error(`Failed to import calendar: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
-  exportCalendar(): string {
+
+  async exportCalendar(): Promise<void> {
+    try {
+      await this.fileSystem.exportCalendar(this.calendar)
+    } catch (error) {
+      throw new Error(`Failed to export calendar: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  // Legacy JSON export for backwards compatibility
+  getCalendarJSON(): string {
     return JSON.stringify(this.calendar, null, 2)
   }
 
-  // Storage
-  async clearStorage(): Promise<void> {
+  // Check if File System Access API is supported
+  isFileSystemSupported(): boolean {
+    return this.fileSystem.isSupported()
+  }
+
+  // Prompt user to create a calendar file upfront
+  async createCalendarFile(): Promise<void> {
+    const title = this.calendar.title || this.calendar.createdBy || 'My Advent Calendar'
+    await this.fileSystem.createCalendarFile(this.calendar, `${title}.json`)
+  }
+
+  // Manual save method - saves to IndexedDB
+  async saveToFile(): Promise<void> {
+    console.log('💾 Manual save requested by user')
     try {
-      await this.storage.clear()
-      this.calendar = this.createEmptyCalendar()
-      this.isImported = false
+      await this.fileSystem.saveCalendar(this.calendar)
+      console.log('✅ Calendar saved to IndexedDB successfully')
     } catch (error) {
-      console.error('Failed to clear storage:', error)
+      console.error('❌ Failed to save calendar to IndexedDB:', error)
+      throw error
+    }
+  }
+
+
+  // File management
+  async clearFileHandles(): Promise<void> {
+    try {
+      await this.fileSystem.clearFileHandles()
+      this.calendar = this.createEmptyCalendar()
+    } catch (error) {
+      console.error('Failed to clear file handles:', error)
       throw new Error('Failed to clear calendar data')
     }
   }
 
-  // Check if there's stored data
-  async hasStoredData(): Promise<boolean> {
-    return await this.storage.hasData()
+  // Backwards compatibility alias
+  async clearStorage(): Promise<void> {
+    return this.clearFileHandles()
+  }
+
+
+  // Get current file name
+  async getCurrentFileName(): Promise<string | null> {
+    return await this.fileSystem.getCurrentFileName()
   }
 
   // Calendar unlock logic

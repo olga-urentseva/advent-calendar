@@ -28,6 +28,7 @@ export function CreateCalendar() {
   const [confirmationMessage, setConfirmationMessage] = useState('')
   const [confirmationAction, setConfirmationAction] = useState<'dayCount' | 'clearData' | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
+  
 
   // Load existing data from calendar on component mount
   useEffect(() => {
@@ -49,6 +50,8 @@ export function CreateCalendar() {
         })
         setIsFullyCompleted(fullyCompleted)
         setIsLoaded(true)
+        
+        // Load initial storage info
       } catch (error) {
         console.error('Failed to initialize calendar:', error)
         setError('Failed to load calendar data')
@@ -93,6 +96,8 @@ export function CreateCalendar() {
       setDayCount(count)
       // Update the calendar with new day count (content will be preserved)
       await calendarInstance.setDayCount(count)
+      // Save to file manually
+      await calendarInstance.saveToFile()
     
     // Show notification about content preservation/loss
     if (daysWithContent.length > 0) {
@@ -157,9 +162,22 @@ export function CreateCalendar() {
 
   const handleSaveDay = async (day: number, dayContent: DayContent) => {
     try {
+      console.log('💾 Save button clicked - updating calendar in memory...')
+      // Update content in memory first
       await calendarInstance.setDayContent(day, dayContent)
+      
+      console.log('💾 Now saving entire calendar to OPFS...')
+      // Now save to file manually
+      await calendarInstance.saveToFile()
+      console.log('✅ Calendar successfully saved to OPFS!')
+      
       setSelectedDay(null)
       setError('')
+      
+      // Update storage info after save
+      console.log('🔄 About to update storage info after saving day...')
+      console.log('✅ Storage info update completed after saving day')
+      
       // Check if calendar is now fully completed
       const fullyCompleted = calendarInstance.isFullyCompleted()
       console.log('After saving day:', {
@@ -185,7 +203,7 @@ export function CreateCalendar() {
       await calendarInstance.setCreatedBy(createdBy)
       await calendarInstance.setTo(to)
       
-      const calendarData = calendarInstance.exportCalendar()
+      const calendarData = calendarInstance.getCalendarJSON()
       
       // Download the file
       const dataBlob = new Blob([calendarData], { type: 'application/json' })
@@ -255,7 +273,8 @@ export function CreateCalendar() {
           setCreatedBy(value)
           try {
             await calendarInstance.setCreatedBy(value)
-            setIsFullyCompleted(calendarInstance.isFullyCompleted())
+            await calendarInstance.saveToFile()
+                setIsFullyCompleted(calendarInstance.isFullyCompleted())
           } catch (error) {
             setError('Failed to save created by field')
           }
@@ -264,7 +283,8 @@ export function CreateCalendar() {
           setTo(value)
           try {
             await calendarInstance.setTo(value)
-            setIsFullyCompleted(calendarInstance.isFullyCompleted())
+            await calendarInstance.saveToFile()
+                setIsFullyCompleted(calendarInstance.isFullyCompleted())
           } catch (error) {
             setError('Failed to save to field')
           }
@@ -282,6 +302,7 @@ export function CreateCalendar() {
         isDayCompleted={isDayCompleted}
         onDayClick={handleDayClick}
       />
+
 
       <ExportSection
         isExporting={isExporting}
@@ -304,7 +325,7 @@ export function CreateCalendar() {
         {selectedDay && (
           <DayEditor
             day={selectedDay}
-            dayContent={calendarInstance.getDay(selectedDay)}
+            dayContent={calendarInstance.getDay(selectedDay) || undefined}
             onSave={(dayContent) => handleSaveDay(selectedDay, dayContent)}
             onCancel={() => setSelectedDay(null)}
           />
@@ -330,7 +351,8 @@ export function CreateCalendar() {
               setError('')
               setShowConfirmation(false)
               setConfirmationAction(null)
-            } catch (error) {
+              // Update storage info after clearing data
+                    } catch (error) {
               setError('Failed to clear calendar data')
             }
           }

@@ -10,6 +10,7 @@ import { CountdownTimer } from '../../components/organisms/CountdownTimer'
 import { CalendarViewer } from '../../components/organisms/CalendarViewer'
 import { DayViewer } from '../../components/organisms/DayViewer'
 import { CreateOwnSection } from '../../components/organisms/CreateOwnSection'
+import { StorageFullModal } from '../../components/organisms/StorageFullModal'
 import './styles.css'
 
 
@@ -22,10 +23,26 @@ export function ViewCalendar() {
     isDragging: false,
     testMode: false,
     hasOpenedFirstDay: false,
-    countdown: null
+    countdown: null,
+    showStorageFullModal: false,
+    pendingImportData: null,
+    storageInfo: null
   })
 
   const controller = useState(() => new ViewCalendarController(setState))[0]
+
+  // Initialize calendar on component mount
+  useEffect(() => {
+    const initializeCalendar = async () => {
+      try {
+        await controller.initialize()
+      } catch (error) {
+        console.warn('Failed to initialize calendar:', error)
+      }
+    }
+
+    initializeCalendar()
+  }, [controller])
 
   // Countdown effect
   useEffect(() => {
@@ -70,6 +87,15 @@ export function ViewCalendar() {
           onDragLeave={controller.handleDragLeave.bind(controller)}
           onDrop={controller.handleDrop.bind(controller)}
         />
+
+        <StorageFullModal
+          isOpen={state.showStorageFullModal}
+          onClose={controller.closeStorageFullModal.bind(controller)}
+          onClearStorage={controller.clearStorageAndImport.bind(controller)}
+          requiredMB={state.storageInfo?.requiredMB || 0}
+          availableMB={state.storageInfo?.availableMB || 0}
+        />
+
       </>
     )
   }

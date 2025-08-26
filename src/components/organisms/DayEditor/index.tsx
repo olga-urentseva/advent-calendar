@@ -1,15 +1,16 @@
-import { useState, useRef, useEffect } from 'react'
-import type { DayContent, ContentType, MediaSource } from '../../../types/calendar'
-import { FormGroup } from '../../atoms/FormGroup'
-import { Label } from '../../atoms/Label'
-import { Input } from '../../atoms/Input'
-import { Textarea } from '../../atoms/Textarea'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '../../atoms/Button'
+import { Input } from '../../atoms/Input'
+import { Label } from '../../atoms/Label'
+import { Textarea } from '../../atoms/Textarea'
+import { FormGroup } from '../../atoms/FormGroup'
+import { FileSystemService } from '../../../services/FileSystemService'
+import type { DayContent, ContentType, MediaSource } from '../../../types/calendar'
 import './styles.css'
 
 interface DayEditorProps {
   day: number
-  dayContent: DayContent | null
+  dayContent?: DayContent
   onSave: (content: DayContent) => void
   onCancel: () => void
 }
@@ -22,8 +23,11 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [fileError, setFileError] = useState<string | null>(null)
+  const [compressionInfo, setCompressionInfo] = useState<string | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const fileSystemService = new FileSystemService()
 
   // Character limits
   const MAX_DESCRIPTION_CHARS = 500
@@ -31,6 +35,13 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
   // Initialize from existing content
   useEffect(() => {
     if (dayContent) {
+      console.log('🎬 DayEditor: Loading existing content for day', dayContent.day, {
+        type: dayContent.type,
+        source: dayContent.source,
+        hasContent: Boolean(dayContent.content),
+        contentPreview: dayContent.content ? dayContent.content.substring(0, 50) + '...' : 'none'
+      })
+      
       setContentType(dayContent.type)
       setMediaSource(dayContent.source)
       setContent(dayContent.content || '')
@@ -38,9 +49,14 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
       
       // If there's existing content and it's a base64 file, create preview URL
       if (dayContent.content && dayContent.content.startsWith('data:')) {
+        console.log('🎬 Setting preview URL for existing base64 content')
         setPreviewUrl(dayContent.content)
+      } else {
+        console.log('🎬 No base64 content found or content does not start with data:')
+        setPreviewUrl(null)
       }
     } else {
+      console.log('🎬 DayEditor: No existing content, resetting form')
       // Reset form when no dayContent
       setContentType('text')
       setMediaSource('upload')
@@ -51,18 +67,15 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
     }
   }, [dayContent])
 
-  // Convert file to base64
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(reader.result as string)
-      reader.onerror = () => reject(new Error('Failed to read file'))
-      reader.readAsDataURL(file)
-    })
-  }
+
 
   // Check if form is valid for saving
   const isFormValid = () => {
+    // Don't allow saving if there's a file error
+    if (fileError) {
+      return false
+    }
+    
     if (contentType === 'text') {
       return content.trim().length > 0
     } else {
@@ -84,18 +97,63 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
   }
 
   // Auto-generate preview URL when file is selected
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null
     
-    // Clean up previous preview URL first
+    // Clean up previous preview URL and errors first
     cleanupPreviewUrl()
+    setFileError(null)
+    setCompressionInfo(null)
+    setIsProcessing(true) // Disable save button during file processing
     
-    setSelectedFile(file)
-    
-    if (file) {
-      // Generate new preview URL
+    if (!file) {
+      setSelectedFile(null)
+      setIsProcessing(false)
+      return
+    }
+
+    console.log('🎬 File selected:', {
+      name: file.name,
+      type: file.type,
+      size: `${Math.round(file.size/1024)}KB`,
+      contentType
+    })
+
+    // Check video file size limit (50MB)
+    if (contentType === 'video' && file.size > 50 * 1024 * 1024) {
+      setFileError(`Video file too large. Please use videos under 50MB to prevent browser crashes.`)
+      setSelectedFile(null)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+      setIsProcessing(false) // Re-enable save button
+      return
+    }
+
+    try {
+
+      // Set the file and generate preview
+      setSelectedFile(file)
       const url = URL.createObjectURL(file)
       setPreviewUrl(url)
+      console.log('🎬 Preview URL created:', url)
+      
+      // Note: File is NOT processed/saved to OPFS here
+      // It will only be processed when user clicks Save button
+      console.log('🎬 File ready for saving when user clicks Save button')
+      setIsProcessing(false) // Re-enable save button
+    } catch (error) {
+      // If checking fails, show error and clear file input
+      console.error('🎬 File handling failed:', error)
+      setFileError(error instanceof Error ? error.message : 'File handling failed')
+      setSelectedFile(null)
+      setPreviewUrl(null)
+      setCompressionInfo(null)
+      setIsProcessing(false) // Re-enable save button
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
     }
   }
 
@@ -117,9 +175,15 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
       } else {
         // Handle media content
         if (mediaSource === 'upload' && selectedFile) {
-          // Convert file to base64 for storage
-          finalContent = await fileToBase64(selectedFile)
+          // NOW we process the file when user clicks Save
+          console.log('💾 Processing file for save - converting to base64...')
+          const processedContent = await fileSystemService.processMediaFile(selectedFile, contentType)
+          if (!processedContent) {
+            throw new Error('Failed to process file')
+          }
+          finalContent = processedContent.content
           finalSource = 'upload'
+          console.log('✅ File converted to base64, ready for IndexedDB save')
         } else if (mediaSource === 'upload' && content && content.startsWith('data:')) {
           // Keep existing base64 content
           finalContent = content
@@ -143,7 +207,7 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
         originalFileName: selectedFile?.name
       }
       
-      await onSave(dayContent)
+      onSave(dayContent)
     } catch (error) {
       console.error('Error saving day content:', error)
       alert('Failed to save content. Please try again.')
@@ -211,6 +275,15 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
       (contentType !== 'text' && mediaSource === 'upload' && content && content.startsWith('data:')) ||
       (contentType !== 'text' && mediaSource === 'url' && content.trim().length > 0)
 
+    console.log('🎬 Preview render check:', {
+      contentType,
+      mediaSource,
+      selectedFile: Boolean(selectedFile),
+      hasContent: Boolean(content),
+      contentStartsWithData: content?.startsWith('data:'),
+      shouldShowPreview
+    })
+
     if (!shouldShowPreview) return null
 
     return (
@@ -257,15 +330,27 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
           
           {contentType === 'video' && (
             <div className="video-preview">
+              {(() => {
+                console.log('🎬 Video preview render check:', {
+                  mediaSource,
+                  hasSelectedFile: Boolean(selectedFile),
+                  hasPreviewUrl: Boolean(previewUrl),
+                  hasContent: Boolean(content),
+                  contentStartsWithData: content?.startsWith('data:')
+                })
+                return null
+              })()}
               {mediaSource === 'upload' && selectedFile && previewUrl && (
                 <video 
                   src={previewUrl} 
                   controls 
                   className="preview-video"
                   onError={(e) => {
-                    console.error('Video preview error:', e)
+                    console.error('🎬 Video preview error (new file):', e)
                     cleanupPreviewUrl()
                   }}
+                  onLoadStart={() => console.log('🎬 Video loading started (new file)')}
+                  onCanPlay={() => console.log('🎬 Video can play (new file)')}
                 />
               )}
               {mediaSource === 'upload' && content && content.startsWith('data:') && !selectedFile && (
@@ -274,8 +359,10 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
                   controls 
                   className="preview-video"
                   onError={(e) => {
-                    console.error('Stored video preview error:', e)
+                    console.error('🎬 Stored video preview error:', e, 'Source:', content.substring(0, 100))
                   }}
+                  onLoadStart={() => console.log('🎬 Stored video loading started, src length:', content.length)}
+                  onCanPlay={() => console.log('🎬 Stored video can play')}
                 />
               )}
               {mediaSource === 'url' && content && (
@@ -284,9 +371,11 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
                   controls 
                   className="preview-video"
                   onError={(e) => {
-                    console.error('URL video preview error:', e)
+                    console.error('🎬 URL video preview error:', e)
                     e.currentTarget.style.display = 'none'
                   }}
+                  onLoadStart={() => console.log('🎬 URL video loading started')}
+                  onCanPlay={() => console.log('🎬 URL video can play')}
                 />
               )}
             </div>
@@ -404,7 +493,7 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
                     ref={fileInputRef}
                     type="file"
                     name="file"
-                    accept={contentType === 'image' ? 'image/*' : 'video/*'}
+                    accept={contentType === 'image' ? 'image/*' : 'video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg'}
                     className="file-input"
                     id={`file-upload-${day}`}
                     onChange={handleFileChange}
@@ -417,11 +506,33 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
                     📁 Choose {contentType === 'image' ? 'Image' : 'Video'} File
                   </button>
                   <div className="file-size-notice">
-                    {contentType === 'image' ? 'Max file size: 15MB. Images over 5MB are automatically compressed.' : 'Max file size: 15MB'}
+                    <>Please use files under 50MB to prevent browser crashes.</>
+                    <br />
+                    {contentType === 'image' ? (
+                      <>🖼️ Images &gt;500KB auto-compressed</>
+                    ) : (
+                      <>
+                      <>🎥 Supported: MP4, WebM, OGG (avoid QuickTime/MOV)</>
+                      
+          
+                      </>
+                      
+                    )}
+                    <br />
                   </div>
+                  {fileError && (
+                    <div className="file-error">
+                      ❌ {fileError}
+                    </div>
+                  )}
                   {selectedFile && (
                     <div className="file-info">
                       Selected: {selectedFile.name}
+                    </div>
+                  )}
+                  {compressionInfo && (
+                    <div className="compression-info">
+                      ✅ {compressionInfo}
                     </div>
                   )}
                 </div>

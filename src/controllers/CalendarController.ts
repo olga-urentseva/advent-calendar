@@ -1,14 +1,14 @@
 import { CalendarModel } from '../models/CalendarModel'
-import type { DayContent, ContentType } from '../types/calendar'
-import { FileService } from '../services/FileService'
+import type { DayContent, ContentType, AdventCalendar } from '../types/calendar'
+import { FileSystemService } from '../services/FileSystemService'
 
 export class CalendarController {
   private model: CalendarModel
-  private fileService: FileService
+  private fileSystemService: FileSystemService
 
   constructor() {
     this.model = new CalendarModel()
-    this.fileService = new FileService()
+    this.fileSystemService = new FileSystemService()
   }
 
   // Calendar Management
@@ -49,24 +49,44 @@ export class CalendarController {
     return this.model.getDayCount()
   }
 
-  // File Operations
+  // File Operations with File System Access API
   async exportCalendar() {
     if (!this.isCalendarValid()) {
       throw new Error('Calendar is not complete. Please fill in all required fields.')
     }
     
-    const calendarData = this.model.exportCalendar()
-    this.fileService.downloadFile(calendarData, this.getCalendar().title)
+    const calendar = this.model.getCalendar()
+    await this.fileSystemService.exportCalendar(calendar)
   }
 
   async importCalendar(file: File) {
-    const data = await this.fileService.readFile(file)
-      this.model.importCalendar(data)
+    // Read the file content 
+    const data = await this.readFile(file)
+    const calendarData = JSON.parse(data) as AdventCalendar
+    
+    // Import to OPFS for persistent storage
+    const imported = await this.fileSystemService.importCalendar(calendarData)
+    this.model.importCalendar(JSON.stringify(imported))
+  }
+
+  private readFile(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        try {
+          resolve(e.target?.result as string)
+        } catch {
+          reject(new Error('Failed to read file'))
+        }
+      }
+      reader.onerror = () => reject(new Error('Failed to read file'))
+      reader.readAsText(file)
+    })
   }
 
   // URL Validation
   validateUrl(url: string, type: ContentType) {
-    return this.fileService.validateUrl(url, type)
+    return this.fileSystemService.validateUrl(url, type)
   }
 
   // Reset

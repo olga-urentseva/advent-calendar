@@ -9,6 +9,9 @@ export interface ViewCalendarState {
   testMode: boolean
   hasOpenedFirstDay: boolean
   countdown: CountdownData | null
+  showStorageFullModal: boolean
+  pendingImportData: string | null
+  storageInfo: { requiredMB: number; availableMB: number } | null
 }
 
 export class ViewCalendarController {
@@ -25,18 +28,58 @@ export class ViewCalendarController {
       isDragging: false,
       testMode: false,
       hasOpenedFirstDay: false,
-      countdown: null
+      countdown: null,
+      showStorageFullModal: false,
+      pendingImportData: null,
+      storageInfo: null
     }
     this.setState = setState
   }
 
+  // Initialize calendar and handle file access
+  async initialize(): Promise<void> {
+    try {
+      await this.calendar.initialize()
+      
+      // Load calendar data if available
+      const calendarData = this.calendar.getCalendar()
+      if (calendarData && this.calendar.isValid()) {
+        this.updateState({ calendarData })
+      }
+    } catch (error) {
+      console.warn('Failed to initialize calendar:', error)
+    }
+  }
+
+
   async handleFileUpload(file: File): Promise<void> {
     try {
       this.updateState({ error: '' })
+      
+      // Read the uploaded file
       const data = await this.readFile(file)
-      this.calendar.importCalendar(data)
+      
+      // Parse JSON with better error handling
+      let imported: AdventCalendar
+      try {
+        imported = JSON.parse(data) as AdventCalendar
+      } catch (jsonError) {
+        throw new Error(`Invalid JSON file: ${jsonError instanceof Error ? jsonError.message : 'Malformed JSON'}`)
+      }
+
+      // Validate basic calendar structure
+      if (!imported.days || !Array.isArray(imported.days)) {
+        throw new Error('Invalid calendar file: Missing or invalid days array')
+      }
+      if (!imported.title && !imported.createdBy) {
+        throw new Error('Invalid calendar file: Missing title and creator information')
+      }
+
+      // Import to OPFS
+      await this.calendar.importCalendar(imported)
       this.updateState({ calendarData: this.calendar.getCalendar() })
     } catch (err) {
+      console.error('Calendar import error:', err)
       this.updateState({ 
         error: err instanceof Error ? err.message : 'Failed to import calendar' 
       })
@@ -47,13 +90,24 @@ export class ViewCalendarController {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
       reader.onload = (e) => {
-        try {
-          resolve(e.target?.result as string)
-        } catch {
-          reject(new Error('Failed to read file'))
+        const result = e.target?.result
+        if (typeof result !== 'string') {
+          reject(new Error('File reading failed: Invalid file content'))
+          return
         }
+        if (result.length === 0) {
+          reject(new Error('File reading failed: File is empty'))
+          return
+        }
+        resolve(result)
       }
-      reader.onerror = () => reject(new Error('Failed to read file'))
+      reader.onerror = (error) => {
+        console.error('FileReader error:', error)
+        reject(new Error(`File reading failed: ${reader.error?.message || 'Unknown FileReader error'}`))
+      }
+      reader.onabort = () => {
+        reject(new Error('File reading was aborted'))
+      }
       reader.readAsText(file)
     })
   }
@@ -109,6 +163,46 @@ export class ViewCalendarController {
 
   checkDayUnlocked(day: number): boolean {
     return this.calendar.isDayUnlocked(day, this.state.testMode)
+  }
+
+  // Storage modal handlers
+  closeStorageFullModal(): void {
+    this.updateState({
+      showStorageFullModal: false,
+      pendingImportData: null,
+      storageInfo: null
+    })
+  }
+
+  async clearStorageAndImport(): Promise<void> {
+    try {
+      if (!this.state.pendingImportData) return
+      
+      // Clear existing OPFS data
+      await this.calendar.clearFileHandles()
+      
+      // Import the pending data to OPFS
+      if (this.state.pendingImportData) {
+        const imported = JSON.parse(this.state.pendingImportData) as AdventCalendar
+        await this.calendar.importCalendar(imported)
+      }
+      
+      // Update state
+      this.updateState({
+        calendarData: this.calendar.getCalendar(),
+        showStorageFullModal: false,
+        pendingImportData: null,
+        storageInfo: null,
+        error: ''
+      })
+    } catch (err) {
+      this.updateState({
+        error: err instanceof Error ? err.message : 'Failed to import calendar',
+        showStorageFullModal: false,
+        pendingImportData: null,
+        storageInfo: null
+      })
+    }
   }
 
   private updateState(updates: Partial<ViewCalendarState>): void {

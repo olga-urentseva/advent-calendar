@@ -1,0 +1,81 @@
+.storage-full-modal {
+  text-align: center;
+  max-width: 500px;
+  padding: 1rem;
+}
+
+.storage-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.storage-message h3 {
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+}
+
+.storage-message p {
+  color: var(--color-text);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.storage-details {
+  background: var(--color-background-secondary);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  text-align: left;
+}
+
+.storage-requirement,
+.storage-available {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.storage-requirement {
+  color: #e74c3c;
+}
+
+.storage-available {
+  color: #2c3e50;
+}
+
+.storage-solution {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.modal-actions button {
+  min-width: 120px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .storage-full-modal {
+    max-width: 100%;
+    padding: 0.5rem;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .modal-actions button {
+    width: 100%;
+  }
+}
