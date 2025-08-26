@@ -13,7 +13,7 @@ import { DayEditor } from '../../components/organisms/DayEditor'
 import './styles.css'
 
 // Create calendar instance once, outside the component
-const calendarInstance = new Calendar()
+const calendarInstance = new Calendar('created')
 
 export function CreateCalendar() {
   const [createdBy, setCreatedBy] = useState('')

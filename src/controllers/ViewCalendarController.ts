@@ -20,7 +20,7 @@ export class ViewCalendarController {
   private setState: (state: ViewCalendarState) => void
 
   constructor(setState: (state: ViewCalendarState) => void) {
-    this.calendar = new Calendar()
+    this.calendar = new Calendar('received')
     this.state = {
       calendarData: null,
       selectedDay: null,

@@ -7,16 +7,23 @@ interface FileHandleStorage {
   lastSavedAt: number | null
 }
 
+type StorageType = 'created' | 'received'
+
 export class FileSystemService {
-  private readonly STORAGE_KEY = 'advent_calendar_file_handles'
-  private fileHandles: FileHandleStorage = { calendarFileName: 'calendar.json', lastSavedAt: null }
+  private readonly STORAGE_KEY: string
+  private fileHandles: FileHandleStorage
   private opfsWorker: OPFSWorkerService
 
   // Image compression threshold (not a limit, just when to compress)
   private readonly IMAGE_COMPRESSION_THRESHOLD_KB = 500 // When to start compressing images
 
-  constructor() {
-    this.opfsWorker = new OPFSWorkerService()
+  constructor(storageType: StorageType = 'created') {
+    this.STORAGE_KEY = `advent_calendar_file_handles_${storageType}`
+    this.fileHandles = { 
+      calendarFileName: `calendar_${storageType}.json`, 
+      lastSavedAt: null 
+    }
+    this.opfsWorker = new OPFSWorkerService(this.fileHandles.calendarFileName)
     this.initializeStorage()
     this.loadFileHandles()
   }

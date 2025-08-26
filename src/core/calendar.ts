@@ -19,8 +19,8 @@ export class Calendar {
   private calendar: AdventCalendar
   private initialized: boolean = false
 
-  constructor() {
-    this.fileSystem = new FileSystemService()
+  constructor(storageType: 'created' | 'received' = 'created') {
+    this.fileSystem = new FileSystemService(storageType)
     this.calendar = this.createEmptyCalendar()
   }
 

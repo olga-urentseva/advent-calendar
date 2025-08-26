@@ -4,6 +4,7 @@ interface WorkerMessage {
   id: string
   type: 'save' | 'load' | 'clear' | 'hasData' | 'getQuota' | 'canSave'
   payload?: any
+  fileName?: string
 }
 
 interface WorkerResponse {
@@ -20,7 +21,6 @@ interface CalendarStore {
 }
 
 class OPFSWorker {
-  private readonly CALENDAR_FILE = 'calendar.json'
   private readonly MEDIA_DIR = 'media'
   private opfsRoot: FileSystemDirectoryHandle | null = null
 
@@ -118,7 +118,7 @@ class OPFSWorker {
     throw new Error('Neither createWritable() nor createSyncAccessHandle() are available')
   }
 
-  async saveCalendar(calendar: AdventCalendar): Promise<void> {
+  async saveCalendar(calendar: AdventCalendar, fileName: string = 'calendar.json'): Promise<void> {
     const sizeCheck = await this.canSaveCalendar(calendar)
     if (!sizeCheck.canSave) {
       throw new Error(`Calendar size (${sizeCheck.estimatedSizeMB}MB) exceeds storage limit of ${sizeCheck.maxSizeMB}MB.`)
@@ -133,25 +133,25 @@ class OPFSWorker {
       days: calendar.days.map(day => ({
         ...day,
         content: day.source === 'upload' && day.content.startsWith('data:') 
-          ? `media_ref:day_${day.day}` 
+          ? `media_ref:day_${day.day}_${fileName}` 
           : day.content
       }))
     }
 
     const calendarData: CalendarStore = {
-      id: 'main_calendar',
+      id: fileName.replace('.json', ''),
       calendar: calendarMetadata,
       lastSavedAt: Date.now()
     }
 
     // Save calendar metadata
-    const calendarFile = await root.getFileHandle(this.CALENDAR_FILE, { create: true })
+    const calendarFile = await root.getFileHandle(fileName, { create: true })
     await this.writeFile(calendarFile, JSON.stringify(calendarData, null, 2))
 
     // Save media files separately
     for (const day of calendar.days) {
       if (day.source === 'upload' && day.content.startsWith('data:')) {
-        const mediaFileName = `day_${day.day}.json`
+        const mediaFileName = `day_${day.day}_${fileName}.json`
         const mediaFile = await mediaDir.getFileHandle(mediaFileName, { create: true })
         
         const mediaData = {
@@ -168,13 +168,13 @@ class OPFSWorker {
     }
   }
 
-  async loadCalendar(): Promise<AdventCalendar | null> {
+  async loadCalendar(fileName: string = 'calendar.json'): Promise<AdventCalendar | null> {
     try {
       const root = await this.ensureOPFS()
       const mediaDir = await this.ensureMediaDir()
       
       // Load calendar metadata
-      const calendarFile = await root.getFileHandle(this.CALENDAR_FILE)
+      const calendarFile = await root.getFileHandle(fileName)
       const file = await calendarFile.getFile()
       const content = await file.text()
       const calendarData = JSON.parse(content) as CalendarStore
@@ -183,7 +183,7 @@ class OPFSWorker {
       const reconstructedDays = await Promise.all(
         calendarData.calendar.days.map(async (day) => {
           if (day.content && day.content.startsWith('media_ref:day_')) {
-            const mediaFileName = `day_${day.day}.json`
+            const mediaFileName = `day_${day.day}_${fileName}.json`
             try {
               const mediaFile = await mediaDir.getFileHandle(mediaFileName)
               const mediaFileData = await mediaFile.getFile()
@@ -218,44 +218,47 @@ class OPFSWorker {
     }
   }
 
-  async clearCalendar(): Promise<void> {
+  async clearCalendar(fileName: string = 'calendar.json'): Promise<void> {
     const root = await this.ensureOPFS()
     
     try {
-      // Get all entries in the root directory and remove them
-      const entries = []
-      for await (const [name] of (root as any).entries()) {
-        entries.push(name)
-      }
+      // Remove specific calendar file
+      await root.removeEntry(fileName)
+      console.log(`🗑️ Removed calendar file: ${fileName}`)
       
-      // Remove all entries
-      for (const name of entries) {
-        try {
-          await root.removeEntry(name, { recursive: true })
-          console.log(`🗑️ Removed OPFS entry: ${name}`)
-        } catch (error) {
-          if ((error as any)?.name !== 'NotFoundError') {
-            console.warn(`Failed to remove OPFS entry ${name}:`, error)
+      // Remove associated media files
+      try {
+        const mediaDir = await root.getDirectoryHandle(this.MEDIA_DIR)
+        const entries = []
+        for await (const [name] of (mediaDir as any).entries()) {
+          if (name.includes(fileName)) {
+            entries.push(name)
           }
         }
+        
+        for (const name of entries) {
+          try {
+            await mediaDir.removeEntry(name)
+            console.log(`🗑️ Removed media file: ${name}`)
+          } catch (error) {
+            if ((error as any)?.name !== 'NotFoundError') {
+              console.warn(`Failed to remove media file ${name}:`, error)
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to clear media files:', error)
       }
-      
-      console.log('🗑️ OPFS directory completely cleared')
     } catch (error) {
-      console.warn('Failed to clear OPFS directory:', error)
-      // Fallback to removing known entries
-      try {
-        await root.removeEntry(this.CALENDAR_FILE)
-      } catch {}
-      try {
-        await root.removeEntry(this.MEDIA_DIR, { recursive: true })
-      } catch {}
+      if ((error as any)?.name !== 'NotFoundError') {
+        console.warn(`Failed to clear calendar ${fileName}:`, error)
+      }
     }
   }
 
-  async hasData(): Promise<boolean> {
+  async hasData(fileName: string = 'calendar.json'): Promise<boolean> {
     try {
-      const calendar = await this.loadCalendar()
+      const calendar = await this.loadCalendar(fileName)
       return calendar?.days?.some(day => day.content.trim() !== '') || false
     } catch {
       return false
@@ -285,28 +288,28 @@ const opfsWorker = new OPFSWorker()
 
 // Handle messages from main thread
 self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
-  const { id, type, payload } = event.data
+  const { id, type, payload, fileName } = event.data
   
   try {
     let result: any = null
     
     switch (type) {
       case 'save':
-        await opfsWorker.saveCalendar(payload)
+        await opfsWorker.saveCalendar(payload, fileName)
         result = { success: true }
         break
       
       case 'load':
-        result = await opfsWorker.loadCalendar()
+        result = await opfsWorker.loadCalendar(fileName)
         break
       
       case 'clear':
-        await opfsWorker.clearCalendar()
+        await opfsWorker.clearCalendar(fileName)
         result = { success: true }
         break
       
       case 'hasData':
-        result = await opfsWorker.hasData()
+        result = await opfsWorker.hasData(fileName)
         break
       
       case 'getQuota':

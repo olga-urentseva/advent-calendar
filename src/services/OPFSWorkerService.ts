@@ -4,6 +4,7 @@ interface WorkerMessage {
   id: string
   type: 'save' | 'load' | 'clear' | 'hasData' | 'getQuota' | 'canSave'
   payload?: any
+  fileName?: string
 }
 
 interface WorkerResponse {
@@ -16,10 +17,15 @@ interface WorkerResponse {
 export class OPFSWorkerService {
   private worker: Worker | null = null
   private messageId = 0
+  private fileName: string
   private pendingMessages = new Map<string, {
     resolve: (value: any) => void
     reject: (error: Error) => void
   }>()
+
+  constructor(fileName: string = 'calendar.json') {
+    this.fileName = fileName
+  }
 
   async init(): Promise<void> {
     if (!this.isSupported()) {
@@ -82,7 +88,7 @@ export class OPFSWorkerService {
     return new Promise((resolve, reject) => {
       this.pendingMessages.set(id, { resolve, reject })
       
-      const message: WorkerMessage = { id, type, payload }
+      const message: WorkerMessage = { id, type, payload, fileName: this.fileName }
       this.worker!.postMessage(message)
       
       // Timeout after 30 seconds
