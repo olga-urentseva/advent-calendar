@@ -2,12 +2,7 @@ import { Link } from 'react-router-dom'
 import { Button } from '../../atoms/Button'
 import './styles.css'
 
-interface CreateOwnSectionProps {
-  hasOpenedFirstDay: boolean
-}
-
-export function CreateOwnSection({ hasOpenedFirstDay }: CreateOwnSectionProps) {
-  if (!hasOpenedFirstDay) return null
+export function CreateOwnSection() {
 
   return (
     <div className="create-own-section">

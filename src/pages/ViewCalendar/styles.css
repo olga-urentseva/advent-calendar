@@ -32,3 +32,12 @@
     transform: translateY(0);
   }
 }
+
+.safari-notice {
+  text-align: center;
+ 
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-accent);
+  font-style: italic;
+}

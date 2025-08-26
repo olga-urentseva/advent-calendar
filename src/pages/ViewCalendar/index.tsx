@@ -13,9 +13,8 @@ import { CreateOwnSection } from '../../components/organisms/CreateOwnSection'
 import { StorageFullModal } from '../../components/organisms/StorageFullModal'
 import './styles.css'
 
-
-
 export function ViewCalendar() {
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
   const [state, setState] = useState<ViewCalendarState>({
     calendarData: null,
     selectedDay: null,
@@ -105,6 +104,12 @@ export function ViewCalendar() {
       <Title>{state.calendarData.title}</Title>
       <Subtitle>From: {state.calendarData.createdBy}</Subtitle>
       
+      {isSafari && (
+        <div className="safari-notice">
+          For the best app experience, we recommend using Chrome or Firefox due to Safari limitations.
+        </div>
+      )}
+      
       <TestModeToggle
         testMode={state.testMode}
         onTestModeChange={controller.toggleTestMode.bind(controller)}
@@ -133,7 +138,7 @@ export function ViewCalendar() {
         )}
       </Modal>
 
-      <CreateOwnSection hasOpenedFirstDay={state.hasOpenedFirstDay} />
+      <CreateOwnSection/>
     </>
   )
 } 
