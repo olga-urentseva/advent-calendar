@@ -2,7 +2,7 @@
 .test-mode-toggle {
   margin: 1rem 0;
   padding: 1rem;
-  background: var(--color-secondary-light);
+  /* background: var(--color-secondary-light); */
   border: 1px solid var(--color-accent);
   border-radius: 0.5rem;
   text-align: center;
@@ -25,7 +25,7 @@
   position: relative;
   width: clamp(2.5rem, 8vw, 3.125rem);
   height: clamp(1.25rem, 4vw, 1.5rem);
-  background: var(--color-text-light);
+  background: var(--color-text);
   border-radius: 0.75rem;
   transition: background 0.3s ease;
 }
@@ -43,7 +43,7 @@
 }
 
 .test-toggle input[type="checkbox"]:checked + .toggle-slider {
-  background: var(--color-accent);
+  background: var(--color-text);
 }
 
 .test-toggle input[type="checkbox"]:checked + .toggle-slider:before {

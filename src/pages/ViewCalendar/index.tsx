@@ -110,10 +110,10 @@ export function ViewCalendar() {
         </div>
       )}
       
-      <TestModeToggle
+      {/* <TestModeToggle
         testMode={state.testMode}
         onTestModeChange={controller.toggleTestMode.bind(controller)}
-      />
+      /> */}
 
       {!state.testMode && state.countdown && (
         <CountdownTimer countdown={state.countdown} />
