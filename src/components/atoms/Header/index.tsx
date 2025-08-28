@@ -16,6 +16,7 @@ export function Header() {
           <nav className="header__nav">
             <Link to="/create" className="header__nav-link">Create Calendar</Link>
             <Link to="/view" className="header__nav-link">View Calendar</Link>
+            <Link to="/about" className="header__nav-link">About</Link>
           </nav>
         </div>
       </header>

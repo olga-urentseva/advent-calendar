@@ -52,14 +52,14 @@
 }
 
 .header__nav-link {
-  color: var(--color-secondary-light);
+  color: var(--color-secondary-dark);
   text-decoration: none;
   font-weight: 400;
   font-size: 1rem;
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, text-decoration 0.2s ease;
 }
 
 .header__nav-link:hover {
-  color: var(--color-secondary);
-  
+  color: var(--color-secondary-light);
+  text-decoration: underline;
 }

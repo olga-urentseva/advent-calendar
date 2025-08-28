@@ -1,4 +1,5 @@
 import './styles.css'
+import { Link } from 'react-router-dom'
 import { Snow } from './Snow'
 import { Snowman } from './Snowman'
 import { Tree, SmallTree, BigTree } from './Tree'

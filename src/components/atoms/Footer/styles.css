@@ -42,6 +42,21 @@
   text-align: center;
 }
 
+.footer__nav {
+  margin-bottom: 1rem;
+}
+
+.footer__nav-link {
+  color: var(--color-text-inversion);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.2s ease;
+}
+
+.footer__nav-link:hover {
+  color: var(--color-secondary-light);
+}
+
 .footer__copyright {
   margin: 0;
   font-size: 0.875rem;

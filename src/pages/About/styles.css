@@ -1,0 +1,18 @@
+/* About page styles */
+.about {
+  text-align: left;
+}
+
+.about p {
+  margin-bottom: 1.5rem;
+}
+
+.about a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.about a:hover {
+  color: var(--color-accent-light);
+  text-decoration: underline;
+}
