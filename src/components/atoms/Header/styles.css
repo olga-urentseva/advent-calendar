@@ -2,6 +2,8 @@
 .header {
   background: var(--color-primary-dark);
   padding-top: 1rem;
+  margin: 0;
+  
 }
 
 .header__content {
