@@ -4,12 +4,6 @@
   margin-bottom: var(--spacing-medium);
 }
 
-.subtitle {
-  margin-bottom: var(--spacing-large);
-  color: var(--color-text-light);
-  font-size: 1.5rem;
-}
-
 .view-calendar-error {
   background-color: var(--color-error-background);
   color: var(--color-error-text);

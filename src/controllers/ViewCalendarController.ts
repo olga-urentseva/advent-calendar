@@ -71,9 +71,15 @@ export class ViewCalendarController {
       if (!imported.days || !Array.isArray(imported.days)) {
         throw new Error('Invalid calendar file: Missing or invalid days array')
       }
-      if (!imported.title && !imported.createdBy) {
-        throw new Error('Invalid calendar file: Missing title and creator information')
+      if (!imported.createdBy) {
+        throw new Error('Invalid calendar file: Missing creator information')
       }
+
+      // Debug the imported data
+      console.log('📥 Imported calendar data:', {
+        createdBy: imported.createdBy,
+        to: imported.to
+      })
 
       // Import to OPFS
       await this.calendar.importCalendar(imported)

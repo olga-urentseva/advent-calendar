@@ -186,7 +186,6 @@ class OPFSWorker {
       const calendarData = JSON.parse(content) as CalendarStore
       console.log('🔧 OPFS Worker: Parsed calendar data:', {
         id: calendarData.id,
-        title: calendarData.calendar.title,
         createdBy: calendarData.calendar.createdBy,
         daysCount: calendarData.calendar.days.length
       })
@@ -224,7 +223,6 @@ class OPFSWorker {
       }
       
       console.log('🔧 OPFS Worker: Returning calendar:', {
-        title: finalCalendar.title,
         createdBy: finalCalendar.createdBy,
         to: finalCalendar.to,
         daysCount: finalCalendar.days.length,

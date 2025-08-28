@@ -68,6 +68,7 @@ export function ViewCalendar() {
     return controller.checkDayUnlocked(day)
   }
 
+
   if (!state.calendarData) {
     return (
       <>
@@ -97,12 +98,15 @@ export function ViewCalendar() {
 
       </>
     )
+
+
+    
   }
 
   return (
     <>
-      <Title>{state.calendarData.title}</Title>
       <Subtitle>From: {state.calendarData.createdBy}</Subtitle>
+      <Subtitle>To: {state.calendarData.to}</Subtitle>
       
       {isSafari && (
         <div className="safari-notice">

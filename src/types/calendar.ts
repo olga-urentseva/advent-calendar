@@ -14,7 +14,6 @@ export interface DayContent {
 }
 
 export interface AdventCalendar {
-  title: string
   createdBy: string
   to: string
   createdAt: string
@@ -22,7 +21,6 @@ export interface AdventCalendar {
 }
 
 export interface CalendarMetadata {
-  title: string
   createdBy: string
   to: string
   createdAt: string

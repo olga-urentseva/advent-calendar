@@ -1,6 +1,6 @@
-/* Subtitle styles */
 .subtitle {
-  font-size: 2rem;
+  font-size: 1.5rem;
   color: var(--color-text-light);
   line-height: 1.5;
+  margin: 0;
 }

@@ -117,7 +117,6 @@ export class OPFSWorkerService {
       
       if (result) {
         console.log('✅ Calendar loaded successfully via worker:', {
-          title: result.title,
           createdBy: result.createdBy,
           to: result.to,
           daysCount: result.days.length

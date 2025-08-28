@@ -35,7 +35,6 @@ export class Calendar {
       const loaded = await this.fileSystem.loadCalendar()
       if (loaded) {
         console.log('📂 Loaded calendar from file:', {
-          title: loaded.title,
           createdBy: loaded.createdBy,
           to: loaded.to,
           daysCount: loaded.days.length,
@@ -62,7 +61,6 @@ export class Calendar {
 
   private createEmptyCalendar(): AdventCalendar {
     return {
-      title: '',
       createdBy: '',
       to: '',
       createdAt: new Date().toISOString(),
@@ -107,10 +105,6 @@ export class Calendar {
 
   async setCreatedBy(createdBy: string): Promise<void> {
     this.calendar.createdBy = createdBy
-    // Set title if empty
-    if (!this.calendar.title) {
-      this.calendar.title = `${createdBy}'s Advent Calendar`
-    }
     console.log('📝 Updated createdBy in memory:', createdBy)
     // Note: Not saving to file automatically - only when user explicitly saves
   }
@@ -228,7 +222,6 @@ export class Calendar {
   async saveToFile(): Promise<void> {
     console.log('💾 Saving calendar to OPFS')
     console.log('💾 Calendar data being saved:', {
-      title: this.calendar.title,
       createdBy: this.calendar.createdBy,
       to: this.calendar.to,
       daysCount: this.calendar.days.length,

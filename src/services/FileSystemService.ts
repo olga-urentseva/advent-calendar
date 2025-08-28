@@ -112,7 +112,6 @@ export class FileSystemService {
       
       if (calendar) {
         console.log('✅ Calendar loaded from OPFS successfully:', {
-          title: calendar.title,
           createdBy: calendar.createdBy,
           to: calendar.to,
           daysCount: calendar.days.length,
@@ -148,7 +147,7 @@ export class FileSystemService {
   // Export calendar for sharing using traditional File System Access API
   async exportCalendar(calendar: AdventCalendar): Promise<void> {
     try {
-      const fileName = `${calendar.title || 'Advent Calendar'} - Share.json`
+      const fileName = `${calendar.createdBy || 'Advent Calendar'} - Share.json`
       
       // Convert OPFS file paths to base64 for sharing
       console.log('📤 Converting OPFS files to base64 for export...')
