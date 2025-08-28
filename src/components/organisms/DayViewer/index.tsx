@@ -1,12 +1,41 @@
+import { useState, useEffect } from 'react'
 import type { DayContent } from '../../../types/calendar'
+import { MediaUrlService } from '../../../services/MediaUrlService'
+import { FileSystemService } from '../../../services/FileSystemService'
 import './styles.css'
 
 interface DayViewerProps {
   day: DayContent
   onClose: () => void
+  mediaUrlService?: MediaUrlService
 }
 
-export function DayViewer({ day }: DayViewerProps) {
+export function DayViewer({ day, mediaUrlService }: DayViewerProps) {
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null)
+  const actualMediaUrlService = mediaUrlService || new FileSystemService('received').getMediaUrlService()
+
+  useEffect(() => {
+    const loadMediaUrl = async () => {
+      if (day.type !== 'text' && day.content) {
+        try {
+          const url = await actualMediaUrlService.getMediaUrl(day.content)
+          setMediaUrl(url)
+        } catch (error) {
+          console.error('Failed to load media URL:', error)
+          setMediaUrl(day.content) // Fallback to original content
+        }
+      }
+    }
+
+    loadMediaUrl()
+
+    // Cleanup function
+    return () => {
+      if (day.content && day.content.startsWith('media/')) {
+        actualMediaUrlService.revokeUrl(day.content)
+      }
+    }
+  }, [day.content, day.type, actualMediaUrlService])
   const renderContent = () => {
     switch (day.type) {
       case 'text':
@@ -20,7 +49,7 @@ export function DayViewer({ day }: DayViewerProps) {
         return (
           <div className="image-content">
             <img 
-              src={day.content} 
+              src={mediaUrl || day.content} 
               alt={day.title || `Day ${day.day}`}
               className="content-image"
             />
@@ -58,7 +87,7 @@ export function DayViewer({ day }: DayViewerProps) {
         return (
           <div className="video-content">
             <video 
-              src={day.content} 
+              src={mediaUrl || day.content} 
               controls
               className="content-video"
             >

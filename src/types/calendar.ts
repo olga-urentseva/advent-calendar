@@ -5,7 +5,7 @@ export interface DayContent {
   day: number
   type: ContentType
   source: MediaSource
-  content: string // text content, base64, or URL
+  content: string // text content, OPFS file path, base64, or URL
   description?: string // text description for media files
   title?: string
   fileSize?: number

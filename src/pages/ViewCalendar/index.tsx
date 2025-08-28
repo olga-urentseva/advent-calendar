@@ -5,11 +5,11 @@ import { Title } from '../../components/atoms/Title'
 import { Subtitle } from '../../components/atoms/Subtitle'
 import { Modal } from '../../components/atoms/Modal'
 import { CalendarUploader } from '../../components/organisms/CalendarUploader'
-// import { TestModeToggle } from '../../components/organisms/TestModeToggle'
+import { TestModeToggle } from '../../components/organisms/TestModeToggle'
 import { CountdownTimer } from '../../components/organisms/CountdownTimer'
 import { CalendarViewer } from '../../components/organisms/CalendarViewer'
 import { DayViewer } from '../../components/organisms/DayViewer'
-import { CreateOwnSection } from '../../components/organisms/CreateOwnSection'
+import { ActiveButtons } from '../../components/organisms/ActiveButtons'
 import { StorageFullModal } from '../../components/organisms/StorageFullModal'
 import './styles.css'
 
@@ -110,10 +110,10 @@ export function ViewCalendar() {
         </div>
       )}
       
-      {/* <TestModeToggle
+      <TestModeToggle
         testMode={state.testMode}
         onTestModeChange={controller.toggleTestMode.bind(controller)}
-      /> */}
+      />
 
       {!state.testMode && state.countdown && (
         <CountdownTimer countdown={state.countdown} />
@@ -134,11 +134,11 @@ export function ViewCalendar() {
           <DayViewer
             day={state.selectedDay}
             onClose={controller.closeDayViewer.bind(controller)}
+            mediaUrlService={controller.getMediaUrlService()}
           />
         )}
       </Modal>
-
-      <CreateOwnSection/>
+      <ActiveButtons clearData={() => controller.clearAllCalendarData()}/>
     </>
   )
 } 

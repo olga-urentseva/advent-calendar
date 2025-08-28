@@ -41,3 +41,24 @@
   color: var(--color-accent);
   font-style: italic;
 }
+
+.view-calendar-actions {
+  text-align: center;
+  margin: var(--spacing-medium) 0;
+}
+
+.clear-calendar-button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--border-radius-small);
+  color: var(--color-text-light);
+  transition: color 0.2s ease, transform 0.1s ease;
+}
+
+.clear-calendar-button:hover {
+  color: var(--color-text);
+  transform: scale(1.1);
+}

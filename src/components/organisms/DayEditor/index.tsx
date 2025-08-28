@@ -13,9 +13,10 @@ interface DayEditorProps {
   dayContent?: DayContent
   onSave: (content: DayContent) => void
   onCancel: () => void
+  fileSystemService?: FileSystemService
 }
 
-export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps) {
+export function DayEditor({ day, dayContent, onSave, onCancel, fileSystemService }: DayEditorProps) {
   const [contentType, setContentType] = useState<ContentType>(dayContent?.type || 'text')
   const [mediaSource, setMediaSource] = useState<MediaSource>(dayContent?.source || 'upload')
   const [content, setContent] = useState(dayContent?.content || '')
@@ -27,7 +28,8 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
   const [compressionInfo, setCompressionInfo] = useState<string | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const fileSystemService = new FileSystemService()
+  const actualFileSystemService = fileSystemService || new FileSystemService()
+  const mediaUrlService = actualFileSystemService.getMediaUrlService()
 
   // Character limits
   const MAX_DESCRIPTION_CHARS = 500
@@ -47,12 +49,24 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
       setContent(dayContent.content || '')
       setDescription(dayContent.description || '')
       
-      // If there's existing content and it's a base64 file, create preview URL
-      if (dayContent.content && dayContent.content.startsWith('data:')) {
-        console.log('🎬 Setting preview URL for existing base64 content')
-        setPreviewUrl(dayContent.content)
+      // Handle existing content - could be base64 or OPFS file path
+      if (dayContent.content) {
+        if (dayContent.content.startsWith('data:')) {
+          console.log('🎬 Setting preview URL for existing base64 content')
+          setPreviewUrl(dayContent.content)
+        } else if (dayContent.content.startsWith('media/')) {
+          console.log('🎬 Loading OPFS file for preview')
+          mediaUrlService.getMediaUrl(dayContent.content).then(url => {
+            setPreviewUrl(url)
+          }).catch(error => {
+            console.error('Failed to load OPFS preview:', error)
+          })
+        } else {
+          console.log('🎬 Content is URL, using directly')
+          setPreviewUrl(dayContent.content)
+        }
       } else {
-        console.log('🎬 No base64 content found or content does not start with data:')
+        console.log('🎬 No existing content')
         setPreviewUrl(null)
       }
     } else {
@@ -81,7 +95,7 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
     } else {
       // For media content
       if (mediaSource === 'upload') {
-        return selectedFile !== null || (content && content.startsWith('data:'))
+        return selectedFile !== null || (content && (content.startsWith('data:') || content.startsWith('media/')))
       } else {
         return content.trim().length > 0
       }
@@ -176,16 +190,16 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
         // Handle media content
         if (mediaSource === 'upload' && selectedFile) {
           // NOW we process the file when user clicks Save
-          console.log('💾 Processing file for save - converting to base64...')
-          const processedContent = await fileSystemService.processMediaFile(selectedFile, contentType)
+          console.log('💾 Processing file for save - converting to OPFS file...')
+          const processedContent = await actualFileSystemService.processMediaFile(selectedFile, contentType)
           if (!processedContent) {
             throw new Error('Failed to process file')
           }
           finalContent = processedContent.content
           finalSource = 'upload'
-          console.log('✅ File converted to base64, ready for IndexedDB save')
-        } else if (mediaSource === 'upload' && content && content.startsWith('data:')) {
-          // Keep existing base64 content
+          console.log('✅ File converted to OPFS path, ready for save')
+        } else if (mediaSource === 'upload' && content && (content.startsWith('data:') || content.startsWith('media/'))) {
+          // Keep existing base64 or OPFS content
           finalContent = content
           finalSource = 'upload'
         } else if (mediaSource === 'url' && finalContent) {
@@ -272,7 +286,7 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
     // Only show preview for media content, not text
     const shouldShowPreview = 
       (contentType !== 'text' && mediaSource === 'upload' && selectedFile) ||
-      (contentType !== 'text' && mediaSource === 'upload' && content && content.startsWith('data:')) ||
+      (contentType !== 'text' && mediaSource === 'upload' && content && (content.startsWith('data:') || content.startsWith('media/'))) ||
       (contentType !== 'text' && mediaSource === 'url' && content.trim().length > 0)
 
     console.log('🎬 Preview render check:', {
@@ -304,9 +318,9 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
                   }}
                 />
               )}
-              {mediaSource === 'upload' && content && content.startsWith('data:') && !selectedFile && (
+              {mediaSource === 'upload' && content && (content.startsWith('data:') || content.startsWith('media/')) && !selectedFile && (
                 <img 
-                  src={content} 
+                  src={previewUrl || content} 
                   alt="Preview" 
                   className="preview-image"
                   onError={(e) => {
@@ -353,15 +367,15 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
                   onCanPlay={() => console.log('🎬 Video can play (new file)')}
                 />
               )}
-              {mediaSource === 'upload' && content && content.startsWith('data:') && !selectedFile && (
+              {mediaSource === 'upload' && content && (content.startsWith('data:') || content.startsWith('media/')) && !selectedFile && (
                 <video 
-                  src={content} 
+                  src={previewUrl || content} 
                   controls 
                   className="preview-video"
                   onError={(e) => {
-                    console.error('🎬 Stored video preview error:', e, 'Source:', content.substring(0, 100))
+                    console.error('🎬 Stored video preview error:', e, 'Source:', (previewUrl || content).substring(0, 100))
                   }}
-                  onLoadStart={() => console.log('🎬 Stored video loading started, src length:', content.length)}
+                  onLoadStart={() => console.log('🎬 Stored video loading started, src length:', (previewUrl || content).length)}
                   onCanPlay={() => console.log('🎬 Stored video can play')}
                 />
               )}
@@ -382,7 +396,7 @@ export function DayEditor({ day, dayContent, onSave, onCancel }: DayEditorProps)
           )}
         </div>
         
-        {(mediaSource === 'upload' && selectedFile) || (mediaSource === 'upload' && content && content.startsWith('data:')) ? (
+        {(mediaSource === 'upload' && selectedFile) || (mediaSource === 'upload' && content && (content.startsWith('data:') || content.startsWith('media/'))) ? (
           <div className="preview-actions">
             <Button 
               type="button" 

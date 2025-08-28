@@ -1,5 +1,6 @@
 import type { AdventCalendar, DayContent, ContentType } from '../types/calendar'
 import { OPFSWorkerService } from './OPFSWorkerService'
+import { MediaUrlService } from './MediaUrlService'
 import { ImageCompressionUtil } from '../utils/imageCompression'
 
 interface FileHandleStorage {
@@ -13,6 +14,7 @@ export class FileSystemService {
   private readonly STORAGE_KEY: string
   private fileHandles: FileHandleStorage
   private opfsWorker: OPFSWorkerService
+  private mediaUrlService: MediaUrlService
 
   // Image compression threshold (not a limit, just when to compress)
   private readonly IMAGE_COMPRESSION_THRESHOLD_KB = 500 // When to start compressing images
@@ -24,8 +26,14 @@ export class FileSystemService {
       lastSavedAt: null 
     }
     this.opfsWorker = new OPFSWorkerService(this.fileHandles.calendarFileName)
+    this.mediaUrlService = new MediaUrlService(this.opfsWorker)
     this.initializeStorage()
     this.loadFileHandles()
+  }
+
+  // Get the MediaUrlService instance that uses the same OPFS context
+  getMediaUrlService(): MediaUrlService {
+    return this.mediaUrlService
   }
 
   private async initializeStorage(): Promise<void> {
@@ -68,29 +76,6 @@ export class FileSystemService {
     }
   }
 
-  // Create calendar file in OPFS
-  async createCalendarFile(calendar: AdventCalendar, _suggestedName?: string): Promise<void> {
-    console.log('📁 createCalendarFile called with OPFS')
-    if (!this.isSupported()) {
-      throw new Error('OPFS is not supported in this browser')
-    }
-
-    try {
-      const fileName = this.fileHandles.calendarFileName
-      console.log('💾 Creating file in OPFS:', fileName)
-      
-      await this.opfsWorker.saveCalendar(calendar)
-      
-      this.fileHandles.lastSavedAt = Date.now()
-      console.log('💾 Saving file metadata...')
-      await this.saveFileHandles()
-      console.log('✅ File created in OPFS with persistent access')
-      
-    } catch (error) {
-      console.error('❌ Failed to create file in OPFS:', error)
-      throw new Error(`Failed to create calendar file: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    }
-  }
 
   // Save calendar data to OPFS
   async saveCalendar(calendar: AdventCalendar): Promise<void> {
@@ -114,16 +99,25 @@ export class FileSystemService {
   // Load calendar from OPFS
   async loadCalendar(): Promise<AdventCalendar | null> {
     console.log('📂 Loading calendar from OPFS')
+    console.log('📂 FileSystemService - calendar filename:', this.fileHandles.calendarFileName)
+    
     if (!this.isSupported()) {
       console.log('❌ OPFS not supported')
       return null
     }
 
     try {
+      console.log('📂 Calling OPFS worker to load calendar...')
       const calendar = await this.opfsWorker.loadCalendar()
       
       if (calendar) {
-        console.log('✅ Calendar loaded from OPFS successfully')
+        console.log('✅ Calendar loaded from OPFS successfully:', {
+          title: calendar.title,
+          createdBy: calendar.createdBy,
+          to: calendar.to,
+          daysCount: calendar.days.length,
+          completedDays: calendar.days.filter(d => d.content.trim() !== '').length
+        })
         return calendar
       } else {
         console.log('📭 No calendar file found in OPFS')
@@ -131,6 +125,11 @@ export class FileSystemService {
       }
     } catch (error) {
       console.error('❌ Failed to load calendar from OPFS:', error)
+      console.error('Load error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : 'No stack trace'
+      })
       return null
     }
   }
@@ -151,6 +150,10 @@ export class FileSystemService {
     try {
       const fileName = `${calendar.title || 'Advent Calendar'} - Share.json`
       
+      // Convert OPFS file paths to base64 for sharing
+      console.log('📤 Converting OPFS files to base64 for export...')
+      const exportCalendar = await this.convertOPFSFilesToBase64(calendar)
+      
       // Use File System Access API for export (user chooses where to save)
       const fileHandle = await window.showSaveFilePicker({
         suggestedName: fileName.replace(/[^a-z0-9\s\-_]/gi, ''),
@@ -161,7 +164,7 @@ export class FileSystemService {
       })
 
       const writable = await fileHandle.createWritable()
-      const calendarData = JSON.stringify(calendar, null, 2)
+      const calendarData = JSON.stringify(exportCalendar, null, 2)
       await writable.write(calendarData)
       await writable.close()
       
@@ -172,6 +175,37 @@ export class FileSystemService {
         throw new Error('Export was cancelled')
       }
       throw new Error(`Failed to export calendar: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  // Convert OPFS file paths back to base64 for sharing
+  async convertOPFSFilesToBase64(calendar: AdventCalendar): Promise<AdventCalendar> {
+    const convertedDays = await Promise.all(
+      calendar.days.map(async (day) => {
+        if (day.source === 'upload' && day.content.startsWith('media/')) {
+          try {
+            // Get the file from OPFS
+            const file = await this.opfsWorker.getMediaFile(day.content)
+            if (file) {
+              // Convert to base64
+              const base64 = await this.fileToBase64(file)
+              return {
+                ...day,
+                content: base64
+              }
+            }
+          } catch (error) {
+            console.warn(`Failed to convert OPFS file ${day.content} to base64:`, error)
+          }
+        }
+        // Return as-is for URLs, text, or already base64 content
+        return day
+      })
+    )
+
+    return {
+      ...calendar,
+      days: convertedDays
     }
   }
 
@@ -193,7 +227,7 @@ export class FileSystemService {
     return supportedTypes.includes(file.type) || supportedExtensions.includes(fileExtension)
   }
 
-  // Process media file - no storage limits with OPFS
+  // Process media file - stores actual files in OPFS and returns file path
   async processMediaFile(file: File, type: ContentType): Promise<DayContent | null> {
     console.log(`📁 Processing ${type} file: ${file.name} (${Math.round(file.size/1024)}KB)`)
     
@@ -232,13 +266,15 @@ export class FileSystemService {
         }
       }
 
-      const base64 = await this.fileToBase64(processedFile)
+      // Store file in OPFS and return file path reference
+      const fileId = `file_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
+      const filePath = await this.opfsWorker.storeMediaFile(processedFile, fileId)
       
       return {
         day: 0,
         type,
         source: 'upload',
-        content: base64,
+        content: filePath, // Store OPFS file path instead of base64
         fileSize: processedFile.size,
         originalFileName: file.name,
         title: `Day 0`,
@@ -249,7 +285,7 @@ export class FileSystemService {
     }
   }
 
-  // Convert file to base64 (same as before, but no size restrictions)
+  // Convert file to base64 (used only for export)
   private fileToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       if (!(file instanceof File)) {
@@ -309,33 +345,5 @@ export class FileSystemService {
     } catch (error) {
       console.warn('Failed to save file handle references:', error)
     }
-  }
-
-
-  // Get current file name (always available with OPFS)
-  async getCurrentFileName(): Promise<string | null> {
-    return this.fileHandles.calendarFileName
-  }
-
-
-  // Validate URL (same as before)
-  validateUrl(url: string, type: ContentType): boolean {
-    if (type === 'text') return false
-    
-    const urlPatterns = {
-      image: [
-        /\.(jpg|jpeg|png|gif|webp)$/i,
-        /imgur\.com/i,
-        /drive\.google\.com/i,
-        /cloudinary\.com/i
-      ],
-      video: [
-        /youtube\.com|youtu\.be/i,
-        /vimeo\.com/i,
-        /\.(mp4|webm|mov)$/i
-      ]
-    } as const
-
-    return urlPatterns[type].some((pattern: RegExp) => pattern.test(url))
   }
 }

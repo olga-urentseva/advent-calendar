@@ -2,9 +2,10 @@ import type { AdventCalendar } from '../types/calendar'
 
 interface WorkerMessage {
   id: string
-  type: 'save' | 'load' | 'clear' | 'hasData' | 'getQuota' | 'canSave'
+  type: 'save' | 'load' | 'clear' | 'hasData' | 'getQuota' | 'canSave' | 'storeMedia' | 'getMediaFile'
   payload?: any
   fileName?: string
+  fileId?: string
 }
 
 interface WorkerResponse {
@@ -169,15 +170,26 @@ class OPFSWorker {
   }
 
   async loadCalendar(fileName: string = 'calendar.json'): Promise<AdventCalendar | null> {
+    console.log('🔧 OPFS Worker: loadCalendar called with fileName:', fileName)
+    
     try {
       const root = await this.ensureOPFS()
       const mediaDir = await this.ensureMediaDir()
       
+      console.log('🔧 OPFS Worker: Trying to get file handle for:', fileName)
       // Load calendar metadata
       const calendarFile = await root.getFileHandle(fileName)
       const file = await calendarFile.getFile()
       const content = await file.text()
+      console.log('🔧 OPFS Worker: File content length:', content.length)
+      
       const calendarData = JSON.parse(content) as CalendarStore
+      console.log('🔧 OPFS Worker: Parsed calendar data:', {
+        id: calendarData.id,
+        title: calendarData.calendar.title,
+        createdBy: calendarData.calendar.createdBy,
+        daysCount: calendarData.calendar.days.length
+      })
       
       // Reconstruct calendar with media content
       const reconstructedDays = await Promise.all(
@@ -206,14 +218,27 @@ class OPFSWorker {
         })
       )
       
-      return {
+      const finalCalendar = {
         ...calendarData.calendar,
         days: reconstructedDays
       }
+      
+      console.log('🔧 OPFS Worker: Returning calendar:', {
+        title: finalCalendar.title,
+        createdBy: finalCalendar.createdBy,
+        to: finalCalendar.to,
+        daysCount: finalCalendar.days.length,
+        completedDays: finalCalendar.days.filter(d => d.content.trim() !== '').length
+      })
+      
+      return finalCalendar
     } catch (error) {
+      console.log('🔧 OPFS Worker: Load failed with error:', error)
       if ((error as any)?.name === 'NotFoundError') {
+        console.log('🔧 OPFS Worker: File not found, returning null')
         return null
       }
+      console.error('🔧 OPFS Worker: Unexpected error:', error)
       throw error
     }
   }
@@ -276,6 +301,53 @@ class OPFSWorker {
     return { usage: 0, quota: 0 }
   }
 
+  async storeMediaFile(file: File, fileId: string): Promise<string> {
+    const mediaDir = await this.ensureMediaDir()
+    const fileName = `${fileId}.${this.getFileExtension(file.name)}`
+    
+    try {
+      const fileHandle = await mediaDir.getFileHandle(fileName, { create: true })
+      
+      // Write the actual file data (not base64)
+      if ('createWritable' in fileHandle) {
+        const writable = await fileHandle.createWritable()
+        await writable.write(file)
+        await writable.close()
+      } else if ('createSyncAccessHandle' in fileHandle) {
+        const syncHandle = await (fileHandle as any).createSyncAccessHandle()
+        const arrayBuffer = await file.arrayBuffer()
+        syncHandle.truncate(0)
+        syncHandle.write(new Uint8Array(arrayBuffer), { at: 0 })
+        syncHandle.flush()
+        syncHandle.close()
+      } else {
+        throw new Error('Neither createWritable() nor createSyncAccessHandle() are available')
+      }
+      
+      return `media/${fileName}` // Return the file path
+    } catch (error) {
+      throw new Error(`Failed to store media file ${fileName}: ${error}`)
+    }
+  }
+
+  async getMediaFile(filePath: string): Promise<File | null> {
+    try {
+      const mediaDir = await this.ensureMediaDir()
+      const fileName = filePath.replace('media/', '')
+      const fileHandle = await mediaDir.getFileHandle(fileName)
+      const file = await fileHandle.getFile()
+      return file
+    } catch (error) {
+      console.warn(`Failed to get media file ${filePath}:`, error)
+      return null
+    }
+  }
+
+  private getFileExtension(fileName: string): string {
+    const lastDot = fileName.lastIndexOf('.')
+    return lastDot !== -1 ? fileName.substring(lastDot + 1) : 'bin'
+  }
+
   isSupported(): boolean {
     return typeof navigator !== 'undefined' && 
            'storage' in navigator && 
@@ -288,7 +360,7 @@ const opfsWorker = new OPFSWorker()
 
 // Handle messages from main thread
 self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
-  const { id, type, payload, fileName } = event.data
+  const { id, type, payload, fileName, fileId } = event.data
   
   try {
     let result: any = null
@@ -318,6 +390,17 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
       
       case 'canSave':
         result = await opfsWorker.canSaveCalendar(payload)
+        break
+        
+      case 'storeMedia':
+        if (!fileId) {
+          throw new Error('fileId is required for storeMedia operation')
+        }
+        result = await opfsWorker.storeMediaFile(payload, fileId)
+        break
+        
+      case 'getMediaFile':
+        result = await opfsWorker.getMediaFile(payload)
         break
       
       default:

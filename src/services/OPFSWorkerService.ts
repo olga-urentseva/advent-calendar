@@ -2,9 +2,10 @@ import type { AdventCalendar } from '../types/calendar'
 
 interface WorkerMessage {
   id: string
-  type: 'save' | 'load' | 'clear' | 'hasData' | 'getQuota' | 'canSave'
+  type: 'save' | 'load' | 'clear' | 'hasData' | 'getQuota' | 'canSave' | 'storeMedia' | 'getMediaFile'
   payload?: any
   fileName?: string
+  fileId?: string
 }
 
 interface WorkerResponse {
@@ -74,7 +75,7 @@ export class OPFSWorkerService {
     }
   }
 
-  private async sendMessage(type: WorkerMessage['type'], payload?: any): Promise<any> {
+  private async sendMessage(type: WorkerMessage['type'], payload?: any, fileId?: string): Promise<any> {
     if (!this.worker) {
       await this.init()
     }
@@ -88,7 +89,7 @@ export class OPFSWorkerService {
     return new Promise((resolve, reject) => {
       this.pendingMessages.set(id, { resolve, reject })
       
-      const message: WorkerMessage = { id, type, payload, fileName: this.fileName }
+      const message: WorkerMessage = { id, type, payload, fileName: this.fileName, fileId }
       this.worker!.postMessage(message)
       
       // Timeout after 30 seconds
@@ -109,15 +110,27 @@ export class OPFSWorkerService {
 
   async loadCalendar(): Promise<AdventCalendar | null> {
     console.log('📂 Loading calendar via OPFS Worker')
-    const result = await this.sendMessage('load')
+    console.log('📂 OPFSWorkerService - using filename:', this.fileName)
     
-    if (result) {
-      console.log('✅ Calendar loaded successfully')
-    } else {
-      console.log('📭 No calendar found')
+    try {
+      const result = await this.sendMessage('load')
+      
+      if (result) {
+        console.log('✅ Calendar loaded successfully via worker:', {
+          title: result.title,
+          createdBy: result.createdBy,
+          to: result.to,
+          daysCount: result.days.length
+        })
+      } else {
+        console.log('📭 No calendar found via worker')
+      }
+      
+      return result
+    } catch (error) {
+      console.error('❌ OPFS Worker load failed:', error)
+      throw error
     }
-    
-    return result
   }
 
   async clearCalendar(): Promise<void> {
@@ -141,6 +154,19 @@ export class OPFSWorkerService {
     estimatedSizeMB: number
   }> {
     return await this.sendMessage('canSave', calendar)
+  }
+
+  async storeMediaFile(file: File, fileId: string): Promise<string> {
+    console.log(`💾 Storing media file via OPFS Worker: ${fileId}`)
+    const filePath = await this.sendMessage('storeMedia', file, fileId)
+    console.log(`✅ Media file stored: ${filePath}`)
+    return filePath
+  }
+
+  async getMediaFile(filePath: string): Promise<File | null> {
+    console.log(`📂 Getting media file via OPFS Worker: ${filePath}`)
+    const file = await this.sendMessage('getMediaFile', filePath)
+    return file
   }
 
   async getLastSavedAt(): Promise<number | null> {

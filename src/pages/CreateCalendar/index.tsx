@@ -203,7 +203,7 @@ export function CreateCalendar() {
       await calendarInstance.setCreatedBy(createdBy)
       await calendarInstance.setTo(to)
       
-      const calendarData = calendarInstance.getCalendarJSON()
+      const calendarData = await calendarInstance.getExportJSON()
       
       // Download the file
       const dataBlob = new Blob([calendarData], { type: 'application/json' })
@@ -328,6 +328,7 @@ export function CreateCalendar() {
             dayContent={calendarInstance.getDay(selectedDay) || undefined}
             onSave={(dayContent) => handleSaveDay(selectedDay, dayContent)}
             onCancel={() => setSelectedDay(null)}
+            fileSystemService={calendarInstance.getFileSystemService()}
           />
         )}
       </Modal>

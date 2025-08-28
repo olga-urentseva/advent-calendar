@@ -205,6 +205,24 @@ export class ViewCalendarController {
     }
   }
 
+  async clearAllCalendarData(): Promise<void> {
+    try {
+      // Only clear the 'received' calendar storage, not 'created'
+      await this.calendar.clearStorage()
+      this.updateState({
+        calendarData: null,
+        selectedDay: null,
+        error: '',
+        hasOpenedFirstDay: false,
+        countdown: null
+      })
+    } catch (err) {
+      this.updateState({
+        error: err instanceof Error ? err.message : 'Failed to clear calendar data'
+      })
+    }
+  }
+
   private updateState(updates: Partial<ViewCalendarState>): void {
     this.state = { ...this.state, ...updates }
     this.setState(this.state)
@@ -212,5 +230,9 @@ export class ViewCalendarController {
 
   getState(): ViewCalendarState {
     return this.state
+  }
+
+  getMediaUrlService() {
+    return this.calendar.getFileSystemService().getMediaUrlService()
   }
 }

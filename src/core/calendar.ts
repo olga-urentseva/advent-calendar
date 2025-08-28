@@ -29,16 +29,29 @@ export class Calendar {
     if (this.initialized) return
     
     console.log('🚀 Initializing calendar...')
+    console.log('🔍 OPFS supported:', this.fileSystem.isSupported())
+    
     try {
       const loaded = await this.fileSystem.loadCalendar()
       if (loaded) {
-        console.log('📂 Loaded calendar from file:', loaded.title, 'Days:', loaded.days.length)
+        console.log('📂 Loaded calendar from file:', {
+          title: loaded.title,
+          createdBy: loaded.createdBy,
+          to: loaded.to,
+          daysCount: loaded.days.length,
+          completedDays: loaded.days.filter(d => d.content.trim() !== '').length
+        })
         this.calendar = loaded
       } else {
         console.log('📭 No calendar file found, using empty calendar')
       }
     } catch (error) {
-      console.warn('❌ Failed to load calendar from file system:', error)
+      console.error('❌ Failed to load calendar from file system:', error)
+      console.error('Error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : 'No stack trace'
+      })
     }
     
     this.initialized = true
@@ -185,9 +198,19 @@ export class Calendar {
     }
   }
 
-  // Legacy JSON export for backwards compatibility
+  // Legacy JSON export for backwards compatibility (internal use only - contains OPFS paths)
   getCalendarJSON(): string {
     return JSON.stringify(this.calendar, null, 2)
+  }
+
+  // Export-ready JSON with OPFS files converted to base64 for sharing
+  async getExportJSON(): Promise<string> {
+    try {
+      const exportCalendar = await this.fileSystem.convertOPFSFilesToBase64(this.calendar)
+      return JSON.stringify(exportCalendar, null, 2)
+    } catch (error) {
+      throw new Error(`Failed to prepare export JSON: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
   }
 
   // Check if File System Access API is supported
@@ -195,20 +218,38 @@ export class Calendar {
     return this.fileSystem.isSupported()
   }
 
-  // Prompt user to create a calendar file upfront
-  async createCalendarFile(): Promise<void> {
-    const title = this.calendar.title || this.calendar.createdBy || 'My Advent Calendar'
-    await this.fileSystem.createCalendarFile(this.calendar, `${title}.json`)
+  // Get the FileSystemService instance for components that need direct access
+  getFileSystemService(): FileSystemService {
+    return this.fileSystem
   }
 
-  // Manual save method - saves to IndexedDB
+
+  // Save calendar to OPFS
   async saveToFile(): Promise<void> {
-    console.log('💾 Manual save requested by user')
+    console.log('💾 Saving calendar to OPFS')
+    console.log('💾 Calendar data being saved:', {
+      title: this.calendar.title,
+      createdBy: this.calendar.createdBy,
+      to: this.calendar.to,
+      daysCount: this.calendar.days.length,
+      completedDays: this.calendar.days.filter(d => d.content.trim() !== '').length,
+      sampleDay: this.calendar.days[0] ? {
+        day: this.calendar.days[0].day,
+        type: this.calendar.days[0].type,
+        hasContent: Boolean(this.calendar.days[0].content),
+        contentPreview: this.calendar.days[0].content.substring(0, 50) + '...'
+      } : 'No days'
+    })
+    
     try {
       await this.fileSystem.saveCalendar(this.calendar)
-      console.log('✅ Calendar saved to IndexedDB successfully')
+      console.log('✅ Calendar saved to OPFS successfully')
     } catch (error) {
-      console.error('❌ Failed to save calendar to IndexedDB:', error)
+      console.error('❌ Failed to save calendar to OPFS:', error)
+      console.error('Save error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error)
+      })
       throw error
     }
   }
@@ -228,12 +269,6 @@ export class Calendar {
   // Backwards compatibility alias
   async clearStorage(): Promise<void> {
     return this.clearFileHandles()
-  }
-
-
-  // Get current file name
-  async getCurrentFileName(): Promise<string | null> {
-    return await this.fileSystem.getCurrentFileName()
   }
 
   // Calendar unlock logic
