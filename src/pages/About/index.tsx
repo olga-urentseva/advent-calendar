@@ -4,7 +4,7 @@ import './styles.css'
 export function About() {
   return (
     <div className="about">
-      <h1>About Magic Advent Calendar</h1>
+      <h1>About Magical Advent Calendar</h1>
       <p>
         Imagine you have someone special far away from you and you want to make a small surprise for them. 
         This digital advent calendar lets you create a personalized countdown experience filled with your 

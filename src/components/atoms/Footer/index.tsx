@@ -24,7 +24,7 @@ export function Footer() {
       </div>
       <div className="footer__content">
         <p className="footer__copyright">
-          © {currentYear} Magic Advent Calendar. All rights reserved.
+          © {currentYear} Magical Advent Calendar. All rights reserved.
         </p>
       </div>
     </footer>

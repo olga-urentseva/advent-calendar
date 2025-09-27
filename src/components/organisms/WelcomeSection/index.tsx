@@ -7,7 +7,7 @@ import './styles.css'
 export function WelcomeSection() {
   return (
     <div className="welcome-section">
-      <Title>Magic Advent Calendar</Title>
+      <Title>Magical Advent Calendar</Title>
       <Subtitle>Create a personalized digital advent calendar for your loved ones or open one you received</Subtitle>
     </div>
   )
