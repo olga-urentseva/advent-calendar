@@ -1,6 +1,6 @@
 # 🎄 Magic Advent Calendar
 
-Magic Advent Calendar is a web application I built from scratch as an experiment.
+Magical Advent Calendar is a web application I built from scratch as an experiment.
 It allows users to create and share a **digital Advent calendar** by adding custom messages, photos, or videos for each day leading up to Christmas.  
 The app then packages all the content into a single file that can be downloaded and later unpacked by anyone using the same app.
 
