@@ -92,7 +92,7 @@ export class Calendar {
   }
 
   async setDayContent(day: number, content: DayContent): Promise<void> {
-    console.log('📝 setDayContent called for day:', day, 'content type:', content.type)
+    
     const dayIndex = this.calendar.days.findIndex(d => d.day === day)
     if (dayIndex !== -1) {
       this.calendar.days[dayIndex] = { ...content, day }
@@ -105,7 +105,7 @@ export class Calendar {
 
   async setCreatedBy(createdBy: string): Promise<void> {
     this.calendar.createdBy = createdBy
-    console.log('📝 Updated createdBy in memory:', createdBy)
+    
     // Note: Not saving to file automatically - only when user explicitly saves
   }
 
@@ -115,7 +115,7 @@ export class Calendar {
 
   async setTo(to: string): Promise<void> {
     this.calendar.to = to
-    console.log('📝 Updated to in memory:', to)
+    
     // Note: Not saving to file automatically - only when user explicitly saves
   }
 
