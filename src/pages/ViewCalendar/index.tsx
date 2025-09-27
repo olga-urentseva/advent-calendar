@@ -139,6 +139,7 @@ export function ViewCalendar() {
             day={state.selectedDay}
             onClose={controller.closeDayViewer.bind(controller)}
             mediaUrlService={controller.getMediaUrlService()}
+            createdBy={state.calendarData.createdBy}
           />
         )}
       </Modal>

@@ -8,9 +8,10 @@ interface DayViewerProps {
   day: DayContent
   onClose: () => void
   mediaUrlService?: MediaUrlService
+  createdBy: string;
 }
 
-export function DayViewer({ day, mediaUrlService }: DayViewerProps) {
+export function DayViewer({ day, mediaUrlService, createdBy }: DayViewerProps) {
   const [mediaUrl, setMediaUrl] = useState<string | null>(null)
   const actualMediaUrlService = mediaUrlService || new FileSystemService('received').getMediaUrlService()
 
@@ -41,7 +42,8 @@ export function DayViewer({ day, mediaUrlService }: DayViewerProps) {
       case 'text':
         return (
           <div className="text-content">
-            <p>{day.content}</p>
+            <p className='message-description'>{createdBy} left you a message:</p>
+            <p className='message'>{day.content}</p>
           </div>
         )
       
@@ -71,7 +73,7 @@ export function DayViewer({ day, mediaUrlService }: DayViewerProps) {
                 <iframe
                   src={`https://www.youtube.com/embed/${videoId}`}
                   title={day.title || `Day ${day.day}`}
-                  frameBorder="0"
+                  
                   allowFullScreen
                   className="content-video"
                 />

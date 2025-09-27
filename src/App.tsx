@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { Home } from './pages/Home'
+import { Home } from './pages/HomePage/Home'
 import { CreateCalendar } from './pages/CreateCalendar'
 import { ViewCalendar } from './pages/ViewCalendar'
 import { About } from './pages/About'

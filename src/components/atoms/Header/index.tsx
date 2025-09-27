@@ -10,7 +10,7 @@ export function Header() {
           <div className="header__logo">
             <Link to="/" className="header__logo-link">
               <span className="header__logo-icon">🎄</span>
-              <span className="header__logo-text">Advent Calendar</span>
+              <span className="header__logo-text">Magic Advent Calendar</span>
             </Link>
           </div>
           <nav className="header__nav">

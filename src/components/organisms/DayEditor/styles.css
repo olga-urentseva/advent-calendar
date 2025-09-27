@@ -2,7 +2,7 @@
 
 .day-editor {
   background: var(--color-accent-light);
-  padding: 1.5rem;
+  
   border-radius: 1rem;
   max-width: clamp(45rem, 90%, 80rem);
   width: 100%;

@@ -32,10 +32,6 @@
   transition: color 0.2s ease;
 }
 
-.header__logo-link:hover {
-  color: var(--color-secondary-dark);
-}
-
 .header__logo-icon {
   font-size: 1.5em;
 }
@@ -54,12 +50,29 @@
 .header__nav-link {
   color: var(--color-secondary-dark);
   text-decoration: none;
-  font-weight: 400;
+  font-weight: 500;
   font-size: 1rem;
-  transition: color 0.2s ease, text-decoration 0.2s ease;
+  position: relative;
+  transition: color 0.2s ease;
 }
 
-.header__nav-link:hover {
+.header__nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--color-secondary-light);
+  transition: width 0.3s ease;
+}
+
+.header__nav-link:hover,
+.header__nav-link:focus {
   color: var(--color-secondary-light);
-  text-decoration: underline;
+}
+
+.header__nav-link:hover::after,
+.header__nav-link:focus::after {
+  width: 100%;
 }

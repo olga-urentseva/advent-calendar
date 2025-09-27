@@ -21,7 +21,7 @@ export function About() {
         until you choose to share it.
       </p>
       <p>
-        P.S. Happy holiday season, love you! 🤍<br />
+        P.S. Happy holiday season, XO Ho Ho Ho! 🤍<br />
         — Olya (<a href="https://github.com/olga-urentseva" target="_blank" rel="noopener noreferrer">GitHub</a>)
       </p>
     </div>
