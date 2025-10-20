@@ -6,32 +6,20 @@
   gap: var(--spacing-medium);
   padding: var(--spacing-large) var(--spacing-medium);
 }
-.how-it-works__trigger {
-  background: none;
-  border: none;
-  color: var(--color-accent);
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.how-it-works__trigger:hover,
-.how-it-works__trigger:focus {
-  color: var(--color-accent-light);
-}
 
 .how-it-works__description {
-  opacity: 0;
   transition: opacity 0.3s ease;
-  color: var(--color-accent-light);
+  color: var(--color-accent);
   margin: 0;
   padding-bottom: 1rem;
+  width: 100%;
+  max-width: 50em;
 }
 
 .how-it-works__description a {
   color: var(--color-accent);
 }
 
-.how-it-works__trigger:hover + .how-it-works__description,
-.how-it-works__trigger:focus + .how-it-works__description, .how-it-works__description:hover {
-  opacity: 1;
+.how-it-works__description a:hover {
+  color: var(--color-accent-dark);
 }
