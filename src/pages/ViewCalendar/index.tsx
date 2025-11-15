@@ -22,6 +22,7 @@ export function ViewCalendar() {
     isDragging: false,
     testMode: false,
     hasOpenedFirstDay: false,
+    openedDays: new Set<number>(),
     countdown: null,
     showStorageFullModal: false,
     pendingImportData: null,
@@ -48,7 +49,7 @@ export function ViewCalendar() {
     if (!state.calendarData) return
 
     const calculateCountdown = () => {
-      const countdown = controller.calculateCountdown(state.testMode)
+      const countdown = controller.calculateCountdown(state.testMode, state.calendarData?.days.length as 25 | 15 | 7)
       controller.updateCountdown(countdown)
     }
 
@@ -120,6 +121,7 @@ export function ViewCalendar() {
       /> */}
 
       {!state.testMode && state.countdown && (
+        console.log(state.countdown),
         <CountdownTimer countdown={state.countdown} />
       )}
 

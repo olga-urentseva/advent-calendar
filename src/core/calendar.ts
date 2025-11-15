@@ -314,15 +314,47 @@ export class Calendar {
     return null
   }
 
-  calculateCountdown(testMode: boolean = false): CountdownData | null {
+  calculateCountdown(testMode: boolean = false, daysInCalendar: number, openedDays: Set<number>): CountdownData | null {
     if (testMode) return null
 
-    const nextUnlockTime = this.getNextUnlockTime()
-    if (!nextUnlockTime) return null
-
     const now = new Date()
-    const diff = nextUnlockTime.getTime() - now.getTime()
-
+    const currentYear = now.getFullYear()
+    const currentMonth = now.getMonth()
+    const currentDate = now.getDate()
+    
+    const calendarConfig: Record<number, { startDay: number, endDay: number }> = {
+        25: { startDay: 1, endDay: 25 },
+        15: { startDay: 11, endDay: 25 },  // Changed from 14
+        7: { startDay: 19, endDay: 25 }
+    }
+    
+    const config = calendarConfig[daysInCalendar]
+    if (!config) return null
+    
+    const { startDay, endDay } = config
+    const isDecember = currentMonth === 11
+    const isBeforeCalendar = !isDecember || currentDate < startDay
+    const isDuringCalendar = isDecember && currentDate >= startDay && currentDate <= endDay
+    const isAfterCalendar = isDecember && currentDate > endDay
+    
+    // Find next unopened day
+    let nextUnlockedDay = isBeforeCalendar ? startDay : currentDate + 1
+    
+    // If during calendar period, find the next day that's both unlocked AND unopened
+    if (isDuringCalendar) {
+        while (nextUnlockedDay <= endDay && openedDays.has(nextUnlockedDay)) {
+            nextUnlockedDay++
+        }
+        // If all remaining days are opened, no countdown needed
+        if (nextUnlockedDay > endDay) return null
+    }
+    
+    // Determine target year
+    const targetYear = isAfterCalendar ? currentYear + 1 : currentYear
+    
+    const targetDate = new Date(targetYear, 11, nextUnlockedDay, 0, 0, 0, 0)
+    const diff = targetDate.getTime() - now.getTime()
+    
     if (diff <= 0) return null
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
@@ -332,4 +364,4 @@ export class Calendar {
 
     return { days, hours, minutes, seconds }
   }
-}
+} 

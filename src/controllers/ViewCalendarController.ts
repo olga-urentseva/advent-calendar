@@ -8,6 +8,7 @@ export interface ViewCalendarState {
   isDragging: boolean
   testMode: boolean
   hasOpenedFirstDay: boolean
+  openedDays: Set<number>
   countdown: CountdownData | null
   showStorageFullModal: boolean
   pendingImportData: string | null
@@ -31,7 +32,8 @@ export class ViewCalendarController {
       countdown: null,
       showStorageFullModal: false,
       pendingImportData: null,
-      storageInfo: null
+      storageInfo: null,
+      openedDays: new Set()
     }
     this.setState = setState
   }
@@ -143,13 +145,17 @@ export class ViewCalendarController {
   }
 
   handleDayClick(day: DayContent): void {
-    if (this.checkDayUnlocked(day.day)) {
-      this.updateState({ 
-        selectedDay: day,
-        hasOpenedFirstDay: this.state.hasOpenedFirstDay || true
-      })
-    }
+  if (this.checkDayUnlocked(day.day)) {
+    const newOpenedDays = new Set(this.state.openedDays)
+    newOpenedDays.add(day.day)
+    
+    this.updateState({ 
+      selectedDay: day,
+      hasOpenedFirstDay: true,
+      openedDays: newOpenedDays
+    })
   }
+}
 
   closeDayViewer(): void {
     this.updateState({ selectedDay: null })
@@ -163,9 +169,13 @@ export class ViewCalendarController {
     this.updateState({ countdown })
   }
 
-  calculateCountdown(testMode: boolean): CountdownData | null {
-    return this.calendar.calculateCountdown(testMode)
-  }
+  calculateCountdown(testMode: boolean, daysInCalendar: 25 | 15 | 7): CountdownData | null {
+  return this.calendar.calculateCountdown(
+    testMode, 
+    daysInCalendar, 
+    this.state.openedDays
+  )
+}
 
   checkDayUnlocked(day: number): boolean {
     return this.calendar.isDayUnlocked(day, this.state.testMode)
